@@ -1,7 +1,7 @@
-import type { NextConfig } from "next";
+//import type { NextConfig } from "next";
 
-const nextConfig: NextConfig = {
-  serverExternalPackages: ["firebase-admin", "@google-cloud/firestore"],
-};
+//const nextConfig: NextConfig = {
+//  serverExternalPackages: ["firebase-admin", "@google-cloud/firestore"],
+//};
 
-export default nextConfig;
+//export default nextConfig;
