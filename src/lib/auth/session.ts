@@ -1,15 +1,17 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { adminAuth } from '@/lib/firebase-admin';
-import { cookies } from 'next/headers';
+"use server"
 
-export async function POST(request: NextRequest) {
-  const { idToken } = await request.json();
+import { cookies } from "next/headers";
+import { adminAuth } from "@/src/lib/firebase/admin";
+import type { ActionResult } from "@/src/types/action-result";
+
+
+export async function createSession(idToken: string): Promise<ActionResult<{ status: string }>> {
 
   // Verify the ID token
   try {
     await adminAuth.verifyIdToken(idToken);
   } catch {
-    return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
+    return { ok: false, error: 'Invalid token' };
   }
 
   // Create a session cookie (14-day expiry)
@@ -25,11 +27,11 @@ export async function POST(request: NextRequest) {
     sameSite: 'lax',
   });
 
-  return NextResponse.json({ status: 'success' });
+  return { ok: true, data: { status: 'success' } };
 }
 
-export async function DELETE() {
+export async function deleteSession(): Promise<ActionResult<{ status: string }>> {
   const cookieStore = await cookies();
   cookieStore.delete('session');
-  return NextResponse.json({ status: 'success' });
+  return { ok: true, data: { status: 'success' } };
 }

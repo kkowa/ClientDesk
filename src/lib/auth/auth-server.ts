@@ -1,6 +1,9 @@
-import { cookies } from 'next/headers';
-import { adminAuth } from '@/lib/firebase-admin';
-import { DecodedIdToken } from 'firebase-admin/auth';
+import "server-only"
+
+import { cookies } from "next/headers";
+import { adminAuth } from "@/src/lib/firebase/admin";
+import { DecodedIdToken } from "firebase-admin/auth";
+
 
 export async function getServerUser(): Promise<DecodedIdToken | null> {
   const cookieStore = await cookies();
