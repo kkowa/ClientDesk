@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { signIn, signOut } from "@/src/lib/auth/sign-in-up-out";
-import Button from "@/src/components/ui/Button";
+import Button from "@/src/components/ui/button";
 
 
 interface AuthFormProps {

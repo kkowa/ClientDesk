@@ -1,4 +1,4 @@
-import AuthForm from "@/src/components/AuthForm";
+import AuthForm from "@/src/components/auth-form";
 import { getServerUser } from "@/src/lib/auth/auth-server";
 
 

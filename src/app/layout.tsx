@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Roboto } from "next/font/google";
 import "./globals.css";
-import { AuthProvider } from "@/src/app/AuthProvider";
+import { AuthProvider } from "@/src/app/auth-provider";
 
 const roboto = Roboto({
   variable: "--font-roboto",
