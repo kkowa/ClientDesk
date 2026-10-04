@@ -5,15 +5,15 @@ import { getDevelopers } from "@/src/lib/data/get-developers";
 
 
 export default async function DashboardPage() {
-  const user = await getServerUser();
-  if (!user) redirect('/login');
+  const serverUser = await getServerUser();
+  if (!serverUser) redirect('/login');
 
   const developers: Developer[] = await getDevelopers();
 
   return (
     <>
       <div>
-        Welcome, {user.email}
+        Welcome, {serverUser.email}
       </div>
 
       <div>

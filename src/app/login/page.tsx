@@ -3,12 +3,12 @@ import { getServerUser } from "@/src/lib/auth/auth-server";
 
 
 export default async function Page() {
-  const user = await getServerUser();
+  const serverUser = await getServerUser();
 
   return (
     <div className="flex flex-col gap-4 m-4">
       <h1>Login Page</h1>
-      <AuthForm user={user} />
+      <AuthForm serverUser={serverUser} />
     </div>
   );
 }
