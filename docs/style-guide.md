@@ -155,7 +155,7 @@ Only if we have time at the end: live comments and the navbar notification count
 
 > The base implementation handles login securely. Add a check before every page, plus database rules as a backup.
 
-- **Login:** already done in the base implementation. After login, the browser gets a secure session cookie.
+- **Login:** already done in the base implementation. After login, the server gets a secure HTTP-only session cookie.
 - **Roles:** every user is either a `developer` or a `client`, saved on their account so we can check it quickly.
 - **The proxy (`proxy.ts`):** runs before every page. Logged out → sent to login. Client trying to open a developer page (or vice versa) → sent to their own dashboard.
 - **Data ownership:** a developer only sees _their_ clients and requests. A client only sees _their own_ requests. Check this in step 3 of every server action.
@@ -200,12 +200,6 @@ npm run lint
 npm run typecheck
 ```
 
-If a `typecheck` script has not been added yet, use:
-
-```bash
-npx tsc --noEmit
-```
-
 Editor or Copilot warnings are useful while coding, but they do not replace running the project's checks before opening a PR. Add the lint and type-check commands to the repository scripts, then automate them in GitHub Actions when the project setup is stable.
 
 **Secrets:** the `.env` file with Firebase keys **never** gets committed to GitHub. Share it privately, not in the team channel.
@@ -243,3 +237,4 @@ Each pair reviews the other pair's PRs. First target: **Developer Account Regist
 - Add a `declineReason` field to `workRequests`, since a developer has to give a reason when declining.
 - Comments are **add-only**: you can't edit or delete them in the MVP.
 - All status values are lowercase snake_case (`open`, `awaiting_approval`, `declined`, `invited`, `active`).
+- A request has **one status**. There is no separate proposal status. Two in-between states will be added to it: "client asked for changes" and "approved but work hasn't started".
