@@ -1,31 +1,23 @@
 import { redirect } from "next/navigation";
 import { getServerUser } from "@/src/lib/auth/auth-server";
-import type { Developer } from "@/src/types/developer";
-import { getDevelopers } from "@/src/lib/data/get-developers";
 
 
-export default async function DashboardPage() {
+export default async function Page() {
+
   const serverUser = await getServerUser();
-  if (!serverUser) redirect('/login');
 
-  const developers: Developer[] = await getDevelopers();
+  if (!serverUser) {
+    redirect('/login');
+  }
 
   return (
-    <>
+    <div className="flex flex-col items-center justify-center min-h-dvh">
       <div>
         Welcome, {serverUser.email}
       </div>
-
       <div>
-        <h2>Developers</h2>
-        <ul>
-          {developers.map((developer) => (
-            <li key={developer.authUserId}>
-              {developer.name} ({developer.email})
-            </li>
-          ))}
-        </ul>
+        Your role is {serverUser.role}
       </div>
-    </>
+    </div>
   );
 }

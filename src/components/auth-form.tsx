@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { signIn, signOut } from "@/src/lib/auth/sign-in-up-out";
-import Button from "@/src/components/ui/button";
+import { Button } from "@/src/components/ui/button";
 import type { ServerUser } from "@/src/types/server-user";
 
 
@@ -36,15 +36,21 @@ export default function AuthForm({ serverUser }: AuthFormProps) {
     setLoading(true);
     await signOut();
     setLoading(false);
-    router.push('/');
+    router.push('/login');
   }
 
   return (
     <div>
       {error && <div className="text-error">{error}</div>}
       {serverUser ? (
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col justify-center items-center gap-2">
           Signed in as {serverUser.email}
+          <Button type="button" onClick={() => router.push('/dashboard')}>
+            Continue to Dashboard
+          </Button>
+          <div>
+            or
+          </div>
           <Button type="button" onClick={handleSignOut} disabled={loading}>
             {loading ? "Signing Out..." : "Sign Out"}
           </Button>

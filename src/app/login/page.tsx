@@ -6,8 +6,10 @@ export default async function Page() {
   const serverUser = await getServerUser();
 
   return (
-    <div className="flex flex-col gap-4 m-4">
-      <h1>Login Page</h1>
+    <div className="flex flex-col items-center justify-center min-h-dvh">
+      <h1 className="text-2xl font-bold mb-4">
+        Login Page
+      </h1>
       <AuthForm serverUser={serverUser} />
     </div>
   );

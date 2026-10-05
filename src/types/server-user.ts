@@ -1,9 +1,4 @@
-// export type Role = "client" | "developer";
-
-export enum Role {
-  Client = "client",
-  Developer = "developer",
-}
+import { Role } from "./role";
 
 export type ServerUser = {
   uid: string;

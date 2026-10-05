@@ -2,7 +2,8 @@ import "server-only"
 
 import { cookies } from "next/headers";
 import { adminAuth } from "@/src/lib/firebase/admin";
-import type { ServerUser, Role } from "@/src/types/server-user";
+import { ServerUser } from "@/src/types/server-user";
+import { Role } from "@/src/types/role";
 
 
 export async function getServerUser(): Promise<ServerUser | null> {

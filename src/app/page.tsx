@@ -1,14 +1,33 @@
-import AuthForm from "@/src/components/auth-form";
-import { getServerUser } from "@/src/lib/auth/auth-server";
+import { LinkButton } from "@/src/components/ui/button";
+import Link from "next/link";
 
 
 export default async function Home() {
-  const serverUser = await getServerUser();
-
   return (
-    <div className="flex flex-col gap-4 m-4">
-      <h1>Welcome to the Home Page</h1>
-      <AuthForm serverUser={serverUser} />
+    <div className="flex flex-col gap-4 items-center justify-center min-h-dvh">
+      <h1 className="text-2xl font-bold">
+        Welcome to Client Desk
+      </h1>
+      <div className="text-lg italic">
+        Where developers can manage their client requests efficiently.
+      </div>
+      <div className="mt-4">
+        <Link href="/developer-registration">
+          <LinkButton>
+            Developer Registration
+          </LinkButton>
+        </Link>
+      </div>
+      <div>
+        or
+      </div>
+      <div>
+        <Link href="/login">
+          <LinkButton>
+            Login
+          </LinkButton>
+        </Link>
+      </div>
     </div>
   );
 }

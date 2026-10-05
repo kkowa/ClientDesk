@@ -10,7 +10,7 @@ const roboto = Roboto({
 
 export const metadata: Metadata = {
   title: "ClientDesk",
-  description: "ClientDesk application for managing clients efficiently",
+  description: "ClientDesk application for managing client requests efficiently",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
