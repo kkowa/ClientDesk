@@ -84,12 +84,12 @@ Only one page uses a component? Keep it next to that page. Once a second page ne
 | Constants                     | UPPER_SNAKE_CASE                                                 | `MAX_IMAGE_SIZE_MB`                                    |
 | True/false values             | start with is / has / can                                        | `isActive`, `canEdit`                                  |
 | Database collections & fields | camelCase, plural collections                                    | `workRequests`, `submittedAt`                          |
-| Import paths                  | Use the `@/` alias for imports within `src`; avoid deep relative paths | `import { Component } from '@/components/Component'` |
+| Import paths                  | Use the `@/src/` alias for imports within `src`; avoid deep relative paths | `import { Button } from '@/src/components/ui/button'` |
 | Status values saved in the DB | lowercase snake_case                                             | `awaiting_approval`                                    |
 
 **Why lowercase statuses?** The database saves `awaiting_approval`, and one shared file turns it into "Awaiting Approval" for the screen. That way a typo like "Awaiting approval" vs "Awaiting Approval" can't break a filter.
 
-**Import paths:** Use the `@/` alias for imports within `src`, for example `import { Component } from '@/components/Component'`. Use relative imports only when they improve readability for closely related local files. Avoid long paths such as `../../../../components/Component`.
+**Import paths:** Use the `@/src/` alias for imports within `src`, for example `import { Button } from '@/src/components/ui/button'`. The `@/` alias points at the project root, so the path has to include `src/`. Use relative imports only when they improve readability for closely related local files. Avoid long paths such as `../../../../components/ui/button`.
 
 ---
 
