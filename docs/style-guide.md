@@ -52,9 +52,9 @@ Everything in this guide has been agreed by the team.
 ```
 src/
   app/                    // pages (each folder = a URL)
-    (auth)/               // login, signup, activate account
-    (developer)/          // developer dashboard, clients, requests
-    (client)/             // client dashboard, requests, new request
+    auth/                 // login, signup, activate account
+    developer/            // developer dashboard, clients, requests
+    client/               // client dashboard, requests, new request
   components/
     ui/                   // generic pieces: Button, Card, Modal, EmptyState
     features/             // ClientDesk pieces: RequestCard, CommentThread
@@ -68,7 +68,7 @@ src/
   types/                  // TypeScript types for our data
 ```
 
-The folders in (brackets) don't show up in the URL, they just group pages. Only one page uses a component? Keep it next to that page. Once a second page needs it, move it to `components/`.
+Only one page uses a component? Keep it next to that page. Once a second page needs it, move it to `components/`.
 
 ---
 
@@ -238,15 +238,8 @@ Each pair reviews the other pair's PRs. First target: **Developer Account Regist
 
 ## 11. Database Model Updates
 
-> A few database updates have been agreed, with one remaining design question to confirm.
-
-**Agreed:**
+> These database updates have been agreed.
 
 - Add a `declineReason` field to `workRequests`, since a developer has to give a reason when declining.
 - Comments are **add-only**: you can't edit or delete them in the MVP.
 - All status values are lowercase snake_case (`open`, `awaiting_approval`, `declined`, `invited`, `active`).
-
-**To confirm:**
-
-- **Two statuses.** The model keeps a _request_ status (open / awaiting approval / declined) separate from a _proposal_ status (awaiting approval / in progress / completed). That makes sense, they're different things. But the "Filter Requests by Status" task needs to filter by In Progress and Completed, so the request should probably copy the proposal's status whenever it changes.
-- **Missing in-between states.** "Client asked for changes" and "Approved but work hasn't started" are described in the tasks but never named as statuses. Confirm whether they need their own labels.
