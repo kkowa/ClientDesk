@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { signIn, signOut } from "@/src/lib/auth/sign-in-up-out";
 import { Button } from "@/src/components/ui/button";
 import type { ServerUser } from "@/src/types/server-user";
+import { Role } from "@/src/types/role";
 
 
 interface AuthFormProps {
@@ -29,14 +30,36 @@ export default function AuthForm({ serverUser }: AuthFormProps) {
       setError(result.error ?? 'Sign in failed');
       return;
     }
-    router.push('/dashboard');
+    const user = result.data;
+
+    let role: Role;
+    try {
+      const idTokenResult = await user.getIdTokenResult();
+      const claims = idTokenResult.claims;
+
+      if (!claims.role) {
+        throw new Error("Role claim is missing");
+      } else {
+        if (claims.role === Role.Developer || claims.role === Role.Client) {
+          role = claims.role;
+        } else {
+          throw new Error("Invalid role claim");
+        }
+      }
+    } catch (error) {
+      setError(`Error fetching role: ${error}`);
+      return;
+    }
+    if (role) {
+      router.push(`/${role}/dashboard`);
+    }
   }
 
   async function handleSignOut() {
     setLoading(true);
     await signOut();
     setLoading(false);
-    router.push('/login');
+    router.push('/auth/login');
   }
 
   return (
@@ -45,7 +68,7 @@ export default function AuthForm({ serverUser }: AuthFormProps) {
       {serverUser ? (
         <div className="flex flex-col justify-center items-center gap-2">
           Signed in as {serverUser.email}
-          <Button type="button" onClick={() => router.push('/dashboard')}>
+          <Button type="button" onClick={() => router.push(`/${serverUser.role}/dashboard`)}>
             Continue to Dashboard
           </Button>
           <div>
@@ -80,9 +103,11 @@ export default function AuthForm({ serverUser }: AuthFormProps) {
             required
             className="col-span-3"
           />
-          <Button type="submit" disabled={loading}>
-            {loading ? "Signing In..." : "Sign In"}
-          </Button>
+          <div className="col-span-4 flex justify-center">
+            <Button type="submit" disabled={loading}>
+              {loading ? "Signing In..." : "Sign In"}
+            </Button>
+          </div>
         </form>
       )}
     </div>

@@ -12,7 +12,7 @@ export default async function Home() {
         Where developers can manage their client requests efficiently.
       </div>
       <div className="mt-4">
-        <Link href="/developer-registration">
+        <Link href="/developer/registration">
           <LinkButton>
             Developer Registration
           </LinkButton>
@@ -22,7 +22,7 @@ export default async function Home() {
         or
       </div>
       <div>
-        <Link href="/login">
+        <Link href="/auth/login">
           <LinkButton>
             Login
           </LinkButton>

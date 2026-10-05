@@ -1,5 +1,5 @@
 import { Button } from "@/src/components/ui/button";
-import { registerDeveloper } from "@/src/app/developer-registration/actions";
+import { registerDeveloper } from "@/src/app/developer/registration/actions";
 
 
 export default function Page() {
