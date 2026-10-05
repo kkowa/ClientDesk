@@ -26,11 +26,10 @@ interface LinkButtonProps {
 
 export function LinkButton({ children }: LinkButtonProps) {
   return (
-    <button
-      type="button"
+    <div
       className="px-4 py-2 bg-background text-foreground border border-foreground rounded-lg w-fit hover:scale-105 transition-transform"
     >
       {children}
-    </button>
+    </div>
   );
 }
