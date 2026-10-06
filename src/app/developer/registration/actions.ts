@@ -1,12 +1,12 @@
 "use server";
 
-import { redirect } from "next/navigation";
 import { UserRecord, CreateRequest } from "firebase-admin/auth";
 import { adminAuth, adminDb } from "@/src/lib/firebase/admin";
 import { Role } from "@/src/types/role";
 import { developerRegistrationSchema } from "@/src/lib/validation/developer-registration";
+import { ActionResult } from "@/src/types/action-result";
 
-export async function registerDeveloper(formData: FormData) {
+export async function registerDeveloper(formData: FormData): Promise<ActionResult<string>> {
   const result = developerRegistrationSchema.safeParse({
     name: formData.get("name"),
     email: formData.get("email"),
@@ -16,17 +16,18 @@ export async function registerDeveloper(formData: FormData) {
   if (!result.success) {
     const firstError = result.error.issues[0];
 
-    if (firstError.path.includes("name")) {
-      redirect(`/developer/registration/error?reason=invalid_name`);
-    }
-    if (firstError.path.includes("email")) {
-      redirect(`/developer/registration/error?reason=invalid_email`);
-    }
-    if (firstError.path.includes("password")) {
-      redirect(`/developer/registration/error?reason=invalid_password`);
-    }
+    let error = "";
 
-    redirect(`/developer/registration/error?reason=invalid_input`);
+    if (firstError.path.includes("name")) {
+      error = "Please enter your name";
+    } else if (firstError.path.includes("email")) {
+      error = "Please enter a valid email address";
+    } else if (firstError.path.includes("password")) {
+      error = "Please enter a valid password";
+    } else {
+      error = "Please check your information and try again";
+    }
+    return {ok: false, error: error };
   }
 
   // validate input with Zod
@@ -35,7 +36,7 @@ export async function registerDeveloper(formData: FormData) {
   // check that the given email is not already registered
   const existingUser = await adminAuth.getUserByEmail(email).catch(() => null);
   if (existingUser) {
-    redirect(`/developer/registration/error?reason=email_already_registered`);
+    return {ok: false, error: "This email is already registered" };
   }
 
   let developerId: string | null = null;
@@ -68,9 +69,8 @@ export async function registerDeveloper(formData: FormData) {
   }
 
   if (!developerId) {
-    redirect("/developer/registration/error");
+    return {ok: false, error: "An error occurred while creating your account, please try again" };
   }
 
-  // redirect to the login page after successful registration
-  redirect("/auth/login");
+  return {ok: true, data: "Account created successfully" };
 }
