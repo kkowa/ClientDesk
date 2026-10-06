@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Button, LinkButton } from "@/src/components/ui/button";
-import { registerDeveloper } from "@/src/app/developer/registration/actions";
+import { registerDeveloper } from "@/src/lib/actions/developer-registration";
 import { useState } from "react";
 
 
