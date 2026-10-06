@@ -16,7 +16,7 @@ export default function Page() {
         <label className="col-span-1">
           Full Name:
         </label>
-        <input type="text" name="name" className="col-span-3" required />
+        <input type="text" name="name" className="col-span-3" required/>
 
         <label className="col-span-1">
           Email:
