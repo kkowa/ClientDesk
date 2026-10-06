@@ -75,6 +75,7 @@ export default function Page() {
             <div className="flex justify-center">
               <Button
                 type="submit"
+                disabled={loading}
               >
                 {loading ? "Registering..." : "Register"}
               </Button>
