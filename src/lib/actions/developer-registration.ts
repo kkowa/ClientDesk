@@ -23,7 +23,7 @@ export async function registerDeveloper(formData: FormData): Promise<ActionResul
     } else if (firstError.path.includes("email")) {
       error = "Please enter a valid email address";
     } else if (firstError.path.includes("password")) {
-      error = "Please enter a valid password";
+      error = "Please enter a password of at least 6 characters";
     } else {
       error = "Please check your information and try again";
     }
