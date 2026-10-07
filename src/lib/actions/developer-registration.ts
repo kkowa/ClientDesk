@@ -49,23 +49,29 @@ export async function registerDeveloper(formData: FormData): Promise<ActionResul
     };
     const userRecord: UserRecord = await adminAuth.createUser(createRequest);
 
-    // set custom user claims for the role
-    await adminAuth.setCustomUserClaims(userRecord.uid, {
-      role: Role.Developer,
-    });
+    try {
+      // set custom user claims for the role
+      await adminAuth.setCustomUserClaims(userRecord.uid, {
+        role: Role.Developer,
+      });
 
-    // create document in the developers collection of the database
-    const docRef = await adminDb.collection("developers").add({
-      authUserId: userRecord.uid,
-      name,
-      email,
-      createdAt: new Date(),
-    });
+      // create document in the developers collection of the database
+      const docRef = await adminDb.collection("developers").add({
+        authUserId: userRecord.uid,
+        name,
+        email,
+        createdAt: new Date(),
+      });
 
-    // use this to reference the developer document later if needed
-    developerId = docRef.id;
+      // use this to reference the developer document later if needed
+      developerId = docRef.id;
+    } catch (error) {
+      await adminAuth.deleteUser(userRecord.uid);
+      console.error("Error setting custom user claims or creating developer document:", error);
+    }
+
   } catch (error) {
-    console.error("Error creating developer:", error);
+    console.error("Error creating developer user account:", error);
   }
 
   if (!developerId) {
