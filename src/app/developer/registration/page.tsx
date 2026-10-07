@@ -23,14 +23,20 @@ export default function Page() {
     setSuccess(null);
 
     setLoading(true);
-    const result = await registerDeveloper(formData);
-    setLoading(false);
-    if (!result.ok) {
-      setError(result.error);
+    try {
+      const result = await registerDeveloper(formData);
+      if (!result.ok) {
+        setError(result.error);
+        setSuccess(null);
+      } else {
+        setSuccess(result.data);
+        setError(null);
+      }
+    } catch (error) {
+      setError("An unexpected error occurred. Please try again.");
       setSuccess(null);
-    } else {
-      setSuccess(result.data);
-      setError(null);
+    } finally {
+      setLoading(false);
     }
   }
 
