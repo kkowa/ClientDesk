@@ -3,6 +3,7 @@
 import { cookies } from "next/headers";
 import { adminAuth } from "@/src/lib/firebase/admin";
 import type { ActionResult } from "@/src/types/action-result";
+import { getServerUser } from "./auth-server";
 
 
 export async function createSession(idToken: string): Promise<ActionResult<{ status: string }>> {
@@ -31,7 +32,28 @@ export async function createSession(idToken: string): Promise<ActionResult<{ sta
 }
 
 export async function deleteSession(): Promise<ActionResult<{ status: string }>> {
-  const cookieStore = await cookies();
-  cookieStore.delete('session');
+  let user;
+  try {
+    user = await getServerUser();
+    if (!user) {
+      return { ok: false, error: 'No user session found' };
+    }
+  } catch {
+    return { ok: false, error: 'Failed to get server user' };
+  }
+
+  try {
+    await adminAuth.revokeRefreshTokens(user.uid);
+  } catch {
+    return { ok: false, error: 'Failed to revoke session' };
+  }
+
+  try {
+    const cookieStore = await cookies();
+    cookieStore.delete('session');
+  } catch {
+    return { ok: false, error: 'Failed to delete session cookie' };
+  }
+
   return { ok: true, data: { status: 'success' } };
 }
