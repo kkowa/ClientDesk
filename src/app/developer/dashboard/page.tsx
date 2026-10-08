@@ -7,7 +7,13 @@ import { signOut } from "@/src/lib/auth/sign-in-up-out";
 
 export default async function Page() {
 
-  const serverUser = await getServerUser();
+  let serverUser;
+  try {
+    serverUser = await getServerUser();
+  } catch (error) {
+    console.error("Failed to get server user:", error);
+    redirect('/auth/login');
+  }
 
   // kick to login if not authenticated
   if (!serverUser) {
