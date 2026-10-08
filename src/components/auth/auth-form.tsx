@@ -57,11 +57,7 @@ export default function AuthForm({ serverUser }: AuthFormProps) {
 
   async function handleSignOut() {
     setLoading(true);
-    try {
-      await signOut();
-    } catch (error) {
-      setError(`Error signing out: ${error}`);
-    }
+    await signOut();
     setLoading(false);
     router.push('/auth/login');
   }
