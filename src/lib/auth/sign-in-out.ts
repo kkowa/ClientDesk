@@ -23,6 +23,13 @@ export async function signIn(email: string, password: string): Promise<ActionRes
   try {
     idToken = await credential.user.getIdToken();
   } catch (error) {
+    if (auth.currentUser) {
+      try {
+        await firebaseSignOut(auth);
+      } catch (signOutError) {
+        console.error("Failed to sign out after token retrieval failure:", (signOutError as AuthError).message);
+      }
+    }
     return { ok: false, error: (error as AuthError).message };
   }
 
@@ -30,10 +37,24 @@ export async function signIn(email: string, password: string): Promise<ActionRes
   try {
     sessionResult = await createSession(idToken);
   } catch (error) {
+    if (auth.currentUser) {
+      try {
+        await firebaseSignOut(auth);
+      } catch (signOutError) {
+        console.error("Failed to sign out after session creation failure:", (signOutError as AuthError).message);
+      }
+    }
     return { ok: false, error: (error as AuthError).message };
   }
 
   if (!sessionResult.ok) {
+    if (auth.currentUser) {
+      try {
+        await firebaseSignOut(auth);
+      } catch (signOutError) {
+        console.error("Failed to sign out after session creation failure:", (signOutError as AuthError).message);
+      }
+    }
     return { ok: false, error: "Failed to create session" };
   }
   return { ok: true, data: credential.user };
