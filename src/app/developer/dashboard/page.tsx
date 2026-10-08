@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { getServerUser } from "@/src/lib/auth/auth-server";
 import { Role } from "@/src/types/role";
 import { Button } from "@/src/components/ui/button";
-import { signOut } from "@/src/lib/auth/sign-in-up-out";
+import { signOut } from "@/src/lib/auth/sign-in-out";
 
 
 export default async function Page() {
