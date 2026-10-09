@@ -23,6 +23,10 @@ export default function AuthForm({ serverUser }: AuthFormProps) {
     const formData = new FormData(event.currentTarget);
     const email = formData.get('email') as string;
     const password = formData.get('password') as string;
+
+    // reset error state in case user is retrying
+    setError(null);
+
     setLoading(true);
     const result = await signIn(email, password);
     setLoading(false);
@@ -56,11 +60,21 @@ export default function AuthForm({ serverUser }: AuthFormProps) {
   }
 
   async function handleSignOut() {
+    // reset error state in case user is retrying
+    setError(null);
+
     setLoading(true);
     try {
-      await signOut();
-    } catch (error) {
-      setError(`Error signing out: ${error}`);
+      const result = await signOut();
+      if (!result.ok) {
+        setLoading(false);
+        setError("Error signing out, please try again");
+        return;
+      }
+    } catch {
+      setLoading(false);
+      setError("Error signing out, please try again");
+      return;
     }
     setLoading(false);
     router.push('/auth/login');

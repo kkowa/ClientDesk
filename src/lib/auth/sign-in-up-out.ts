@@ -40,7 +40,20 @@ export async function signUp(email: string, password: string): Promise<ActionRes
   }
 }
 
-export async function signOut(): Promise<void> {
-  await firebaseSignOut(auth);
-  await deleteSession();
+export async function signOut(): Promise<ActionResult<{ status: string }>> {
+  try {
+    await firebaseSignOut(auth);
+  } catch (error) {
+    console.error("Failed to sign out:", (error as AuthError).message);
+    return { ok: false, error: (error as AuthError).message };
+  }
+
+  try {
+    await deleteSession();
+  } catch (error) {
+    console.error("Failed to delete session:", (error as AuthError).message);
+    return { ok: false, error: "Failed to delete session" };
+  }
+
+  return { ok: true, data: { status: 'success' } };
 }
