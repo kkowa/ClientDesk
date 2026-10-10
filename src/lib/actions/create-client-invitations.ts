@@ -101,7 +101,6 @@ export async function createClientInvitation(formData: FormData): Promise<
         .doc(userRecord.uid)
         .set({
           authUserId: userRecord.uid,
-          developerAuthUserId: serverUser.uid,
           developerId: developerSnapshot.docs[0].id,
           name,
           email,

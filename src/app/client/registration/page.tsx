@@ -1,4 +1,4 @@
-import { ClientRegistrationForm } from "@/src/app/client/_components/client-registration-form";
+import { ClientRegistrationForm } from "@/src/app/client/components/client-registration-form";
 import { EmptyState } from "@/src/components/ui/empty-state";
 import { getClientInvitation } from "@/src/lib/data/get-client-invitation";
 
