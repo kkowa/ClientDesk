@@ -10,13 +10,22 @@ export async function proxy(request: NextRequest) {
   }
 
   try {
-    const decodedClaims = await adminAuth.verifySessionCookie(sessionCookie);
+    const decodedClaims = await adminAuth.verifySessionCookie(
+      sessionCookie,
+      true,
+    );
 
     if (decodedClaims.role !== Role.Developer) {
       return NextResponse.redirect(new URL("/auth/login", request.url));
     }
   } catch (error) {
-    console.log("Failed to verify session cookie:", error);
+    const errorCode =
+      error && typeof error === "object" && "code" in error
+        ? error.code
+        : "unknown";
+
+    console.error("Session verification failed", errorCode);
+
     return NextResponse.redirect(new URL("/auth/login", request.url));
   }
 
