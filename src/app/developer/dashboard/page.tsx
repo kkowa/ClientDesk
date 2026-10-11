@@ -1,8 +1,7 @@
 import { redirect } from "next/navigation";
 import { getServerUser } from "@/src/lib/auth/auth-server";
 import { Role } from "@/src/types/role";
-import { Button } from "@/src/components/ui/button";
-import { signOut } from "@/src/lib/auth/sign-in-up-out";
+import { SignOutButton } from "@/src/components/auth/sign-out-button";
 
 
 export default async function Page() {
@@ -34,9 +33,7 @@ export default async function Page() {
         Welcome, {serverUser.email}
       </div>
       <div className="mt-4">
-        <Button onClick={signOut}>
-          Sign Out
-        </Button>
+        <SignOutButton />
       </div>
     </div>
   );

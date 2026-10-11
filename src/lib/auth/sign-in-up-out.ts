@@ -49,7 +49,10 @@ export async function signOut(): Promise<ActionResult<{ status: string }>> {
   }
 
   try {
-    await deleteSession();
+    const result = await deleteSession();
+    if (!result.ok) {
+      return { ok: false, error: "Failed to delete session" };
+    }
   } catch (error) {
     console.error("Failed to delete session:", (error as AuthError).message);
     return { ok: false, error: "Failed to delete session" };
