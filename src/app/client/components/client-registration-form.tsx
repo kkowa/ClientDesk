@@ -27,18 +27,28 @@ export function ClientRegistrationForm({
     event.preventDefault();
     setError(null);
     setLoading(true);
-    const result = await completeClientRegistration(
-      uid,
-      token,
-      new FormData(event.currentTarget),
-    );
-    setLoading(false);
-    if (!result.ok) {
-      setError(result.error);
-      return;
+    
+    try {
+      const result = await completeClientRegistration(
+        uid,
+        token,
+        new FormData(event.currentTarget),
+      );
+
+     if (!result.ok) {
+        setError(result.error);
+        setSuccess(false);
+      } else {
+        setSuccess(true);
+        setError(null);
+      }
+    } catch (error) {
+      setError("An unexpected error occurred. Please try again.");
+      setSuccess(false);
+    } finally {
+      setLoading(false);
     }
-    setSuccess(true);
-  }
+  };
 
   return (
     <main className="flex min-h-dvh items-center justify-center px-6 py-10">

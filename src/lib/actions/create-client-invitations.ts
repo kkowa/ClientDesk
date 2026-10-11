@@ -96,6 +96,7 @@ export async function createClientInvitation(formData: FormData): Promise<
       await adminAuth.setCustomUserClaims(userRecord.uid, {
         role: Role.Client,
       });
+
       await adminDb
         .collection("clients")
         .doc(userRecord.uid)
@@ -110,8 +111,27 @@ export async function createClientInvitation(formData: FormData): Promise<
           createdAt: new Date(),
         });
     } catch (error) {
-      await adminAuth.deleteUser(userRecord.uid).catch(() => undefined);
-      throw error;
+      try {
+        await adminAuth.deleteUser(userRecord.uid);
+      } catch (cleanupError) {
+        await adminDb.collection("failedInvitations").doc(userRecord.uid).set({
+          email,
+          developerId: developerSnapshot.docs[0].id,
+          reason: "AUTH_USER_NOT_DELETED",
+          createdAt: new Date(),
+        });
+
+        return {
+          ok: false,
+          error:
+            "We couldn't finish creating the client account. Please try again. If this continues, contact support.",
+        };
+      }
+
+      return {
+        ok: false,
+        error: "We couldn't create the client account. Please try again.",
+      };
     }
 
     return {
@@ -198,19 +218,23 @@ export async function completeClientRegistration(
       password: parsed.data.password,
       displayName: inviteData.name,
     });
-    await clientRef.update({ status: "active", activatedAt: new Date() });
+
+    await clientRef.update({
+      status: "active",
+      activatedAt: new Date(),
+    });
+
     return { ok: true, data: "Your account is ready. You can now sign in." };
-  } catch {
-    await clientRef
-      .update({
-        status: "invited",
-        registrationTokenHash: tokenHash,
-        registrationExpiresAt: inviteData.registrationExpiresAt,
-      })
-      .catch(() => undefined);
+  } catch (error) {
+    await clientRef.update({
+      status: "activation_failed",
+      activationFailedAt: new Date(),
+    });
+
     return {
       ok: false,
-      error: "We couldn't finish registering your account. Please try again",
+      error:
+        "We couldn't finish registering your account. Your developer will need to send a new invitation.",
     };
   }
 }
