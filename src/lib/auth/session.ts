@@ -53,6 +53,8 @@ export async function deleteSession(): Promise<ActionResult<{ status: string }>>
     return { ok: false, error: 'Failed to get server user' };
   }
 
+  // Firebase stores the revocation time in whole seconds, so a session
+  // created in the same second as the logout stays valid.
   try {
     await adminAuth.revokeRefreshTokens(user.uid);
   } catch {
