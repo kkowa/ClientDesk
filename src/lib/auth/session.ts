@@ -31,7 +31,6 @@ export async function createSession(idToken: string): Promise<ActionResult<{ sta
   } catch (error) {
     return { ok: false, error: (error as Error).message };
   }
-
   cookieStore.set('session', sessionCookie, {
     maxAge: expiresIn / 1000,
     httpOnly: true,
