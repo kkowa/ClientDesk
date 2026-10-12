@@ -34,12 +34,16 @@ export async function registerDeveloper(formData: FormData): Promise<ActionResul
   const { name, email, password } = result.data;
 
   // check that the given email is not already registered
-  const existingUser = await adminAuth.getUserByEmail(email).catch(() => null);
-  if (existingUser) {
-    return {ok: false, error: "This email is already registered" };
+  try {
+    const existingUser = await adminAuth.getUserByEmail(email).catch(() => null);
+    if (existingUser) {
+      return { ok: false, error: "This email is already registered" };
+    }
+  } catch {
+    return { ok: false, error: "Unexpected error occurred, please try again" };
   }
 
-  let developerId: string | null = null;
+  let userRecord: UserRecord | null = null;
   try {
     // create the user in Firebase Auth
     const createRequest: CreateRequest = {
@@ -47,36 +51,52 @@ export async function registerDeveloper(formData: FormData): Promise<ActionResul
       password,
       displayName: name,
     };
-    const userRecord: UserRecord = await adminAuth.createUser(createRequest);
-
-    try {
-      // set custom user claims for the role
-      await adminAuth.setCustomUserClaims(userRecord.uid, {
-        role: Role.Developer,
-      });
-
-      // create document in the developers collection of the database
-      const docRef = await adminDb.collection("developers").add({
-        authUserId: userRecord.uid,
-        name,
-        email,
-        createdAt: new Date(),
-      });
-
-      // use this to reference the developer document later if needed
-      developerId = docRef.id;
-    } catch (error) {
-      await adminAuth.deleteUser(userRecord.uid);
-      console.error("Error setting custom user claims or creating developer document:", error);
-    }
-
+    userRecord = await adminAuth.createUser(createRequest);
   } catch (error) {
     console.error("Error creating developer user account:", error);
+    return { ok: false, error: "Failed to create developer user account" };
+  }
+
+  try {
+    // set custom user claims for the role
+    await adminAuth.setCustomUserClaims(userRecord.uid, {
+      role: Role.Developer,
+    });
+  } catch (error) {
+    console.error("Error setting custom user claims:", error);
+    try {
+      await adminAuth.deleteUser(userRecord.uid);
+    } catch (deleteError) {
+      console.error("Error deleting developer user after claims failure:", deleteError);
+    }
+    return { ok: false, error: "Failed to set custom developer user claims" };
+  }
+
+  // create document in the developers collection of the database
+  let developerId: string | null = null;
+  try {
+    const docRef = await adminDb.collection("developers").add({
+      authUserId: userRecord.uid,
+      name,
+      email,
+      createdAt: new Date(),
+    });
+
+    // use this to reference the developer document later if needed
+    developerId = docRef.id;
+  } catch (error) {
+    try {
+      await adminAuth.deleteUser(userRecord.uid);
+    } catch (deleteError) {
+      console.error("Error deleting developer user after document creation failure:", deleteError);
+    }
+    console.error("Error creating developer document:", error);
+    return { ok: false, error: "Failed to create developer document" };
   }
 
   if (!developerId) {
-    return {ok: false, error: "An error occurred while creating your account, please try again" };
+    return { ok: false, error: "An error occurred while creating your account, please try again" };
   }
 
-  return {ok: true, data: "Account created successfully" };
+  return { ok: true, data: "Account created successfully" };
 }
