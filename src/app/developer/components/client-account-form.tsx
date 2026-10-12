@@ -21,6 +21,8 @@ export function ClientAccountForm() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState<string | null>(null);
+  const [clientName, setClientName] = useState("");
+  const [clientEmail, setClientEmail] = useState("");
 
   async function handleSubmit(event: React.SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -60,23 +62,53 @@ export function ClientAccountForm() {
     }
   }
 
+  function resetForm() {
+    setInvitation(null);
+    setMessage("");
+    setRegistrationLink("");
+    setError(null);
+    setCopied(null);
+    setClientName("");
+    setClientEmail("");
+  }
+
   return (
     <main className="mx-auto grid min-h-dvh w-full max-w-6xl grid-cols-1 gap-8 px-6 py-10 md:grid-cols-2 md:items-start md:gap-12">
       <div className="flex flex-col gap-5">
         <section className="rounded-xl border-2 border-foreground p-6">
           <h1 className="mb-6 text-2xl font-bold">Create Client Account</h1>
           <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-            <TextField label="Client Full Name" name="name" required />
+            <TextField
+              label="Client Full Name"
+              name="name"
+              required
+              value={clientName}
+              onChange={(event) => setClientName(event.target.value)}
+            />
             <TextField
               label="Client Email"
               name="email"
               type="email"
               required
+              value={clientEmail}
+              onChange={(event) => setClientEmail(event.target.value)}
             />
             <ErrorMessage message={error} />
-            <Button type="submit" disabled={loading || Boolean(invitation)}>
-              {loading ? "Creating account..." : "Create Client Account"}
-            </Button>
+            {!invitation && (
+              <Button type="submit" disabled={loading}>
+                {loading ? "Creating account..." : "Create Client Account"}
+              </Button>
+            )}
+
+            {invitation && (
+              <button
+                type="button"
+                onClick={resetForm}
+                className="px-4 py-2 rounded-md bg-gray-200 hover:bg-gray-300 text-black"
+              >
+                Create Another Client
+              </button>
+            )}
           </form>
         </section>
 

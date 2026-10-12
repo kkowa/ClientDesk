@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useState } from "react";
 import { Button } from "@/src/components/ui/button";
 import { ErrorMessage } from "@/src/components/ui/error-message";
 import { TextField } from "@/src/components/ui/text-field";
@@ -23,11 +23,11 @@ export function ClientRegistrationForm({
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: React.SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
     setError(null);
     setLoading(true);
-    
+
     try {
       const result = await completeClientRegistration(
         uid,
@@ -35,20 +35,20 @@ export function ClientRegistrationForm({
         new FormData(event.currentTarget),
       );
 
-     if (!result.ok) {
+      if (!result.ok) {
         setError(result.error);
         setSuccess(false);
       } else {
         setSuccess(true);
         setError(null);
       }
-    } catch (error) {
+    } catch {
       setError("An unexpected error occurred. Please try again.");
       setSuccess(false);
     } finally {
       setLoading(false);
     }
-  };
+  }
 
   return (
     <main className="flex min-h-dvh items-center justify-center px-6 py-10">
