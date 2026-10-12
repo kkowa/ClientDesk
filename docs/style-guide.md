@@ -54,7 +54,9 @@ src/
   app/                    // pages (each folder = a URL)
     auth/                 // login, signup, activate account
     developer/            // developer dashboard, clients, requests
+      components/         // components specific to develope
     client/               // client dashboard, requests, new request
+      components/         // components specific to client
   components/
     ui/                   // generic pieces: Button, Card, Modal, EmptyState
     features/             // ClientDesk pieces: RequestCard, CommentThread
@@ -62,6 +64,7 @@ src/
   lib/
     firebase/client.ts    // browser Firebase (login only)
     firebase/admin.ts     // server Firebase (database access)
+    auth/                 // authentication files
     data/                 // functions that READ from the database
     actions/              // functions that CHANGE the database
     validation/           // Zod checks
@@ -87,9 +90,9 @@ Only one page uses a component? Keep it next to that page. Once a second page ne
 | Import paths                  | Use the `@/src/` alias for imports within `src`; avoid deep relative paths | `import { Button } from '@/src/components/ui/button'` |
 | Status values saved in the DB | lowercase snake_case                                             | `awaiting_approval`                                    |
 
-**Why lowercase statuses?** The database saves `awaiting_approval`, and one shared file turns it into "Awaiting Approval" for the screen. That way a typo like "Awaiting approval" vs "Awaiting Approval" can't break a filter.
+**Why lowercase statuses?** The database saves `awaiting_approval`, and one shared file in src/lib/data turns it into "Awaiting Approval" for the screen. That way a typo like "Awaiting approval" vs "Awaiting Approval" can't break a filter.
 
-**Import paths:** Use the `@/src/` alias for imports within `src`, for example `import { Button } from '@/src/components/ui/button'`. The `@/` alias points at the project root, so the path has to include `src/`. Use relative imports only when they improve readability for closely related local files. Avoid long paths such as `../../../../components/ui/button`.
+**Import paths:** Use the `@/src/` alias for imports within `src`, for example `import { Button } from '@/src/components/ui/button'`. The `@/` alias points at the project root, so the path has to include `src/`. Use relative imports only when they are in the same directory. Avoid long paths such as `../../../../components/ui/button`.
 
 ---
 
@@ -102,6 +105,7 @@ Only one page uses a component? Keep it next to that page. Once a second page ne
 3. Keep client components **small**. The page gets the data, then hands it to the interactive piece as props.
 4. Custom hooks go in `src/hooks/` and are only used inside client components.
 5. **Never** import `lib/firebase/admin.ts` or anything in `lib/data/` into a client component. Those files start with `import "server-only"`, so the build will error if someone slips up.
+6. If the entire page is a server component, there's no need to wrap it in a server page.
 
 **Example:** the Requests page (server) loads the list of requests. The "Show completed" toggle is a tiny client component sitting inside it.
 
@@ -113,7 +117,7 @@ Only one page uses a component? Keep it next to that page. Once a second page ne
 
 ### Reading data
 
-Write a function in `lib/data/`, then call it from a server component.
+Add a function to a file in `lib/data/`, then import it from a server component.
 
 ```ts
 // lib/data/work-requests.ts
@@ -156,23 +160,23 @@ Only if we have time at the end: live comments and the navbar notification count
 > The base implementation handles login securely. Add a check before every page, plus database rules as a backup.
 
 - **Login:** already done in the base implementation. After login, the server gets a secure HTTP-only session cookie.
-- **Roles:** every user is either a `developer` or a `client`, saved on their account so we can check it quickly.
+- **Roles:** every user is either a `developer` or a `client`, saved on their Firebase account as a custom claim so we can check it quickly.
 - **The proxy (`proxy.ts`):** runs before every page. Logged out → sent to login. Client trying to open a developer page (or vice versa) → sent to their own dashboard.
 - **Data ownership:** a developer only sees _their_ clients and requests. A client only sees _their own_ requests. Check this in step 3 of every server action.
-- **Security Rules:** Firebase rules live in the repo (`firestore.rules`) and get reviewed in PRs. Hiding a button is not security, the rules are the real lock.
+- **Security Rules:** Firebase rules live in the repo (`firestore.rules`) and get reviewed in PRs. Hiding a button is not security, the rules are the real lock. Add or modify rules in repo first, then implement in Firestore.
 - **Testing:** Authentication should be testable. Use the Firebase Emulator (a fake local Firebase) so tests don't touch real data.
-- **Client invites:** developer creates the client (`status: invited`), Firebase emails the client a link, the client sets their password, and status becomes `active`. The link only works once.
+- **Client invites:** developer creates the client (`status: invited`), the developer will be shown html message they can copy into an email for the client. When the client gets their password, the client sets their password, and status becomes `active`. The link only works once.
 
 ---
 
 ## 7. Look and Feel
 
-> Define colors and sizes in one place. Nobody types random hex codes into components.
+> Define colors and sizes in globals.css. Nobody types random hex codes into components.
 
 - **Font:** Roboto, loaded with `next/font`.
 - **Colors:** muted/pastel. Defined once as theme colors (`primary`, `surface`, etc.) and used as Tailwind classes like `bg-primary`. **No `#hex` codes in components.**
 - **Corners:** rounded. `rounded-xl` for cards and modals, `rounded-lg` for buttons and inputs.
-- **Tailwind only:** no CSS files, no inline `style={{}}`. If the class list gets huge, make it a component.
+- **Tailwind only:** no CSS files, no inline `style={{}}`.
 - **Empty states:** every list (clients, requests, comments) shows a friendly message when it's empty. Use the shared `EmptyState` component.
 - **Mobile first:** build for small screens first, then add bigger-screen styles. The release task requires it working on all screen sizes.
 - **Dark mode, color settings, payments: after MVP only.** Using theme colors now means dark mode is easy to add later.
@@ -181,52 +185,17 @@ Only if we have time at the end: live comments and the navbar notification count
 
 ## 8. Working in GitHub
 
-> Never push straight to `main`. Make a branch, open a PR, and get someone to look at it first.
-
-1. Pull the latest `main` before you start each day.
-2. Make a branch for your task: `feature/user-login`, `fix/signup-error-message`.
-3. Commit messages start with a type: `feat:` (new thing), `fix:` (bug), `refactor:` (cleanup), `chore:` (setup stuff), `docs:` (notes). Example: `feat: add developer signup form`.
-4. Open a PR and link the ClickUp task in it.
-5. **At least 1 teammate reviews before merging.** The team will use peer review until a senior FES developer joins.
-6. PR checklist: run the repository's lint and type checks, confirm there are no leftover `console.log` statements, test as both developer and client when relevant, and add screenshots for UI changes.
-7. Squash and merge (all your commits become one clean commit on `main`).
-
 ### Running the checks
 
-Check `package.json` first because the exact commands depend on the repository setup. The expected scripts are:
+Run the following checks before preparing and submitting a PR.
 
 ```bash
 npm run lint
 npm run typecheck
 ```
 
-Editor or Copilot warnings are useful while coding, but they do not replace running the project's checks before opening a PR. Add the lint and type-check commands to the repository scripts, then automate them in GitHub Actions when the project setup is stable.
-
 **Secrets:** the `.env` file with Firebase keys **never** gets committed to GitHub. Share it privately, not in the team channel.
 
----
-
-## 9. Team Updates
-
-> Short check-ins keep the team informed about progress.
-
-- **Daily update:** if you're working on a task today, post a short update in ClickUp. What you're doing and roughly how long it'll take.
-- **Problems or delays:** say something **right away**, with what's wrong and how long it might push things back.
-- Move your ClickUp task to **in progress** when you start, and link your PR in it.
-- **Stick to MVP.** Extras only once the required stories are done.
-
----
-
-## 10. Who's Doing What
-
-| Phase                 | Pair A                                                     | Pair B                                                                     |
-| --------------------- | ---------------------------------------------------------- | -------------------------------------------------------------------------- |
-| 1 Foundation & Access | Developer Registration, Login, Logout, Protected Access    | App shell (layout, nav, theme, shared components), Client Account Creation |
-| 2 Core Requests       | Submit Request, View Requests (as Client)                  | View Clients, View Client Requests (as Developer)                          |
-| 3 Request Workflow    | Define Proposed Work, Review & Respond to Proposed Work    | Request Comments, Filter Requests by Status, Update Request Status         |
-| 4 Release             | Everyone: integration, testing, release                    | Everyone: integration, testing, release                                    |
-
-Each pair reviews the other pair's PRs. First target: **Developer Account Registration done by end of Tuesday 10/6.**
 
 ---
 
