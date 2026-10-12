@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { signIn, signOut } from "@/src/lib/auth/sign-in-up-out";
+import { signIn, signOut } from "@/src/lib/auth/sign-in-out";
 import { Button } from "@/src/components/ui/button";
 import type { ServerUser } from "@/src/types/server-user";
 import { Role } from "@/src/types/role";
@@ -23,6 +23,10 @@ export default function AuthForm({ serverUser }: AuthFormProps) {
     const formData = new FormData(event.currentTarget);
     const email = formData.get('email') as string;
     const password = formData.get('password') as string;
+
+    // reset error state in case user is retrying
+    setError(null);
+
     setLoading(true);
     const result = await signIn(email, password);
     setLoading(false);
@@ -56,8 +60,22 @@ export default function AuthForm({ serverUser }: AuthFormProps) {
   }
 
   async function handleSignOut() {
+    // reset error state in case user is retrying
+    setError(null);
+
     setLoading(true);
-    await signOut();
+    try {
+      const result = await signOut();
+      if (!result.ok) {
+        setLoading(false);
+        setError("Error signing out, please try again");
+        return;
+      }
+    } catch {
+      setLoading(false);
+      setError("Error signing out, please try again");
+      return;
+    }
     setLoading(false);
     router.push('/auth/login');
   }
