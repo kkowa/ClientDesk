@@ -22,7 +22,7 @@ export async function createSession(idToken: string): Promise<ActionResult<{ sta
   try {
     sessionCookie = await adminAuth.createSessionCookie(idToken, { expiresIn });
   } catch (error) {
-  return { ok: false, error: (error as Error).message };
+    return { ok: false, error: (error as Error).message };
   }
 
   let cookieStore;
@@ -32,7 +32,7 @@ export async function createSession(idToken: string): Promise<ActionResult<{ sta
     return { ok: false, error: (error as Error).message };
   }
 
-cookieStore.set('session', sessionCookie, {
+  cookieStore.set('session', sessionCookie, {
     maxAge: expiresIn / 1000,
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
