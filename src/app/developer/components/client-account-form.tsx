@@ -5,6 +5,7 @@ import { Button } from "@/src/components/ui/button";
 import { ErrorMessage } from "@/src/components/ui/error-message";
 import { TextField } from "@/src/components/ui/text-field";
 import { createClientInvitation } from "@/src/lib/actions/create-client-invitations";
+import { resendClientInvitation } from "@/src/lib/actions/resend-client-invitation";
 
 type Invitation = {
   uid: string;
@@ -23,6 +24,7 @@ export function ClientAccountForm() {
   const [copied, setCopied] = useState<string | null>(null);
   const [clientName, setClientName] = useState("");
   const [clientEmail, setClientEmail] = useState("");
+  const [mode, setMode] = useState<"create" | "resend">("create");
 
   async function handleSubmit(event: React.SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -45,6 +47,41 @@ export function ClientAccountForm() {
       );
     } catch {
       setError("We couldn't create the client account. Please try again");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleResend() {
+    setError(null);
+    setLoading(true);
+
+    try {
+      const origin = window.location.origin;
+      const result = await resendClientInvitation(clientEmail, origin);
+
+      if (!result.ok) {
+        setError(result.error);
+        return;
+      }
+
+      const link = result.data.link;
+
+      setInvitation({
+        uid: result.data.uid,
+        token: result.data.token,
+        clientName: result.data.clientName,
+        clientEmail: result.data.clientEmail,
+        developerName: result.data.developerName,
+      });
+
+      setRegistrationLink(link);
+
+      setMessage(
+        `Hello ${result.data.clientName},\n\nPlease click the link below to register for an account. I look forward to working with you.\n\n${link}\n\nBest Regards,\n${result.data.developerName}`,
+      );
+    } catch {
+      setError("We couldn't resend the invitation. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -76,7 +113,10 @@ export function ClientAccountForm() {
     <main className="mx-auto grid min-h-dvh w-full max-w-6xl grid-cols-1 gap-8 px-6 py-10 md:grid-cols-2 md:items-start md:gap-12">
       <div className="flex flex-col gap-5">
         <section className="rounded-xl border-2 border-foreground p-6">
-          <h1 className="mb-6 text-2xl font-bold">Create Client Account</h1>
+          <h1 className="mb-6 text-2xl font-bold">
+            {mode === "create" ? "Create Client Account" : "Resend Invitation"}
+          </h1>
+
           <form onSubmit={handleSubmit} className="flex flex-col gap-5">
             <TextField
               label="Client Full Name"
@@ -93,21 +133,71 @@ export function ClientAccountForm() {
               value={clientEmail}
               onChange={(event) => setClientEmail(event.target.value)}
             />
+
             <ErrorMessage message={error} />
-            {!invitation && (
+
+            {mode === "create" && !invitation && (
               <Button type="submit" disabled={loading}>
                 {loading ? "Creating account..." : "Create Client Account"}
               </Button>
             )}
 
+            {mode === "resend" && !invitation && (
+              <Button type="button" disabled={loading} onClick={handleResend}>
+                {loading ? "Resending..." : "Resend Invitation"}
+              </Button>
+            )}
+
+            {mode === "resend" && !invitation && (
+              <p className="text-sm text-muted">
+                Want to create a new client instead?{" "}
+                <button
+                  type="button"
+                  className="text-blue-600 underline cursor-pointer"
+                  onClick={() => setMode("create")}
+                >
+                  Back to Create Client Account
+                </button>
+              </p>
+            )}
+
             {invitation && (
-              <button
-                type="button"
-                onClick={resetForm}
-                className="px-4 py-2 rounded-md bg-gray-200 hover:bg-gray-300 text-black"
-              >
-                Create Another Client
-              </button>
+              <div className="flex flex-col gap-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    resetForm();
+                    setMode("create");
+                  }}
+                  className="px-4 py-2 rounded-md bg-gray-200 hover:bg-gray-300 text-black"
+                >
+                  Create Another Account
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    resetForm();
+                    setMode("resend");
+                  }}
+                  className="px-4 py-2 rounded-md bg-gray-200 hover:bg-gray-300 text-black"
+                >
+                  Resend an Invitation
+                </button>
+              </div>
+            )}
+
+            {mode === "create" && (
+              <p className="text-sm text-muted">
+                Need to resend an invitation?{" "}
+                <button
+                  type="button"
+                  className="text-blue-600 underline cursor-pointer"
+                  onClick={() => setMode("resend")}
+                >
+                  Resend Invitation
+                </button>
+              </p>
             )}
           </form>
         </section>
