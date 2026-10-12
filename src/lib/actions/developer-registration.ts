@@ -33,16 +33,6 @@ export async function registerDeveloper(formData: FormData): Promise<ActionResul
   // validate input with Zod
   const { name, email, password } = result.data;
 
-  // check that the given email is not already registered
-  try {
-    const existingUser = await adminAuth.getUserByEmail(email).catch(() => null);
-    if (existingUser) {
-      return { ok: false, error: "This email is already registered" };
-    }
-  } catch {
-    return { ok: false, error: "Unexpected error occurred, please try again" };
-  }
-
   let userRecord: UserRecord | null = null;
   try {
     // create the user in Firebase Auth
@@ -54,6 +44,12 @@ export async function registerDeveloper(formData: FormData): Promise<ActionResul
     userRecord = await adminAuth.createUser(createRequest);
   } catch (error) {
     console.error("Error creating developer user account:", error);
+    if (typeof error === "object" &&
+        error !== null &&
+        "code" in error &&
+        error.code === "auth/email-already-exists") {
+      return { ok: false, error: "This email is already registered" };
+    }
     return { ok: false, error: "Failed to create developer user account" };
   }
 
