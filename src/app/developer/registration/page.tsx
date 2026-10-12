@@ -1,22 +1,19 @@
-"use client"
+"use client";
 
-import Link from "next/link";
-import { Button, LinkButton } from "@/src/components/ui/button";
+import { Button } from "@/src/components/ui/button";
 import { registerDeveloper } from "@/src/lib/actions/developer-registration";
 import { useState } from "react";
 import { ErrorMessage } from "@/src/components/ui/error-message";
 import { TextField } from "@/src/components/ui/text-field";
 
-
 export default function Page() {
-
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
   const handleSubmit = async (event: React.SubmitEvent<HTMLFormElement>) => {
-    event.preventDefault()
-    const formData = new FormData(event.currentTarget)
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
 
     // clear error/success state in case user retries after error
     setError(null);
@@ -38,40 +35,21 @@ export default function Page() {
     } finally {
       setLoading(false);
     }
-  }
+  };
 
   return (
     <div className="flex flex-col gap-4 items-center justify-center min-h-dvh">
-      <h1 className="text-2xl font-bold">
-        Developer Registration
-      </h1>
+      <h1 className="text-2xl font-bold">Developer Registration</h1>
       {success ? (
         <>
           <p className="text-success">{success}</p>
-          <Link href="/auth/login">
-            <LinkButton>
-              Login
-            </LinkButton>
-          </Link>
+          <Button href="/auth/login">Login</Button>
         </>
       ) : (
         <>
-          <form
-            onSubmit={handleSubmit}
-            className="flex flex-col gap-4"
-          >
-            <TextField
-              label="Full Name"
-              name="name"
-              type="text"
-              required
-            />
-            <TextField
-              label="Email"
-              name="email"
-              type="email"
-              required
-            />
+          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+            <TextField label="Full Name" name="name" type="text" required />
+            <TextField label="Email" name="email" type="email" required />
             <TextField
               label="Password"
               name="password"
@@ -79,10 +57,7 @@ export default function Page() {
               required
             />
             <div className="flex justify-center">
-              <Button
-                type="submit"
-                disabled={loading}
-              >
+              <Button type="submit" disabled={loading}>
                 {loading ? "Registering..." : "Register"}
               </Button>
             </div>
@@ -91,8 +66,8 @@ export default function Page() {
       )}
       {error && (
         <>
-        <ErrorMessage message={error}/>
-        <p>Please try again.</p>
+          <ErrorMessage message={error} />
+          <p>Please try again.</p>
         </>
       )}
     </div>

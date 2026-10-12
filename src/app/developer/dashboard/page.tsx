@@ -3,7 +3,6 @@ import { getServerUser } from "@/src/lib/auth/auth-server";
 import { Role } from "@/src/types/role";
 import { SignOutButton } from "@/src/components/auth/sign-out-button";
 
-
 export default async function Page() {
 
   let serverUser;
@@ -16,12 +15,12 @@ export default async function Page() {
 
   // kick to login if not authenticated
   if (!serverUser) {
-    redirect('/auth/login');
+    redirect("/auth/login");
   }
 
   // kick to login if role is not developer
   if (serverUser.role !== Role.Developer) {
-    redirect('/auth/login');
+    redirect("/auth/login");
   }
 
   return (
