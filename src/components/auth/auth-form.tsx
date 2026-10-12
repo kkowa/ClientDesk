@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { signIn, signOut } from "@/src/lib/auth/sign-in-up-out";
+import { signIn, signOut } from "@/src/lib/auth/sign-in-out";
 import { Button } from "@/src/components/ui/button";
 import type { ServerUser } from "@/src/types/server-user";
 import { Role } from "@/src/types/role";
