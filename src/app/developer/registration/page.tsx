@@ -32,7 +32,7 @@ export default function Page() {
         setSuccess(result.data);
         setError(null);
       }
-    } catch (error) {
+    } catch {
       setError("An unexpected error occurred. Please try again.");
       setSuccess(null);
     } finally {
