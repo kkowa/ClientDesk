@@ -17,20 +17,9 @@ export async function createSession(idToken: string): Promise<ActionResult<{ sta
 
   // Create a session cookie (14-day expiry)
   const expiresIn = 60 * 60 * 24 * 14 * 1000; // 14 days
+  const sessionCookie = await adminAuth.createSessionCookie(idToken, { expiresIn });
 
-  let sessionCookie;
-  try {
-    sessionCookie = await adminAuth.createSessionCookie(idToken, { expiresIn });
-  } catch (error) {
-    return { ok: false, error: (error as Error).message };
-  }
-
-  let cookieStore;
-  try {
-    cookieStore = await cookies();
-  } catch (error) {
-    return { ok: false, error: (error as Error).message };
-  }
+  const cookieStore = await cookies();
   cookieStore.set('session', sessionCookie, {
     maxAge: expiresIn / 1000,
     httpOnly: true,
@@ -43,6 +32,7 @@ export async function createSession(idToken: string): Promise<ActionResult<{ sta
 }
 
 export async function deleteSession(): Promise<ActionResult<{ status: string }>> {
+<<<<<<< HEAD
   let user;
   try {
     user = await getServerUser();
@@ -68,5 +58,9 @@ export async function deleteSession(): Promise<ActionResult<{ status: string }>>
     return { ok: false, error: 'Failed to delete session cookie' };
   }
 
+=======
+  const cookieStore = await cookies();
+  cookieStore.delete('session');
+>>>>>>> 62e6b8a5973b0c4d1b45225537bb4d95ae4c8aa3
   return { ok: true, data: { status: 'success' } };
 }
