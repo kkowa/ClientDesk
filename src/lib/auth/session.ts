@@ -3,6 +3,7 @@
 import { cookies } from "next/headers";
 import { adminAuth } from "@/src/lib/firebase/admin";
 import type { ActionResult } from "@/src/types/action-result";
+import { getServerUser } from "./auth-server";
 
 
 export async function createSession(idToken: string): Promise<ActionResult<{ status: string }>> {
@@ -16,9 +17,20 @@ export async function createSession(idToken: string): Promise<ActionResult<{ sta
 
   // Create a session cookie (14-day expiry)
   const expiresIn = 60 * 60 * 24 * 14 * 1000; // 14 days
-  const sessionCookie = await adminAuth.createSessionCookie(idToken, { expiresIn });
 
-  const cookieStore = await cookies();
+  let sessionCookie;
+  try {
+    sessionCookie = await adminAuth.createSessionCookie(idToken, { expiresIn });
+  } catch (error) {
+    return { ok: false, error: (error as Error).message };
+  }
+
+  let cookieStore;
+  try {
+    cookieStore = await cookies();
+  } catch (error) {
+    return { ok: false, error: (error as Error).message };
+  }
   cookieStore.set('session', sessionCookie, {
     maxAge: expiresIn / 1000,
     httpOnly: true,
@@ -31,7 +43,30 @@ export async function createSession(idToken: string): Promise<ActionResult<{ sta
 }
 
 export async function deleteSession(): Promise<ActionResult<{ status: string }>> {
-  const cookieStore = await cookies();
-  cookieStore.delete('session');
+  let user;
+  try {
+    user = await getServerUser();
+    if (!user) {
+      return { ok: false, error: 'No user session found' };
+    }
+  } catch {
+    return { ok: false, error: 'Failed to get server user' };
+  }
+
+  // Firebase stores the revocation time in whole seconds, so a session
+  // created in the same second as the logout stays valid.
+  try {
+    await adminAuth.revokeRefreshTokens(user.uid);
+  } catch {
+    return { ok: false, error: 'Failed to revoke session' };
+  }
+
+  try {
+    const cookieStore = await cookies();
+    cookieStore.delete('session');
+  } catch {
+    return { ok: false, error: 'Failed to delete session cookie' };
+  }
+
   return { ok: true, data: { status: 'success' } };
 }
