@@ -3,7 +3,6 @@ import { getServerUser } from "@/src/lib/auth/auth-server";
 import { Role } from "@/src/types/role";
 import { SignOutButton } from "@/src/components/auth/sign-out-button";
 import { Button } from "@/src/components/ui/button";
-import Link from "next/link";
 
 export default async function Page() {
   let serverUser;
@@ -28,10 +27,8 @@ export default async function Page() {
     <div className="flex flex-col items-center justify-center min-h-dvh">
       <h1 className="text-2xl font-bold">Developer Dashboard</h1>
       <div>Welcome, {serverUser.email}</div>
-      <Button>
-        <Link href="/developer/create-client-account">
-          Create Client Account
-        </Link>
+      <Button href="/developer/create-client-account">
+        Create Client Account
       </Button>
       <div className="mt-4">
         <SignOutButton />
