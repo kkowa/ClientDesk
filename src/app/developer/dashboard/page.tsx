@@ -1,7 +1,6 @@
 import { redirect } from "next/navigation";
 import { getServerUser } from "@/src/lib/auth/auth-server";
 import { Role } from "@/src/types/role";
-import { SignOutButton } from "@/src/components/auth/sign-out-button";
 
 export default async function Page() {
 
@@ -30,9 +29,6 @@ export default async function Page() {
       </h1>
       <div>
         Welcome, {serverUser.email}
-      </div>
-      <div className="mt-4">
-        <SignOutButton />
       </div>
     </div>
   );
