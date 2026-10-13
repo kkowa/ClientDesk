@@ -50,7 +50,7 @@ export async function registerDeveloper(formData: FormData): Promise<ActionResul
         error.code === "auth/email-already-exists") {
       return { ok: false, error: "This email is already registered" };
     }
-    return { ok: false, error: "Failed to create developer user account" };
+    return { ok: false, error: "We couldn't create your account, please try again" };
   }
 
   try {
@@ -63,9 +63,9 @@ export async function registerDeveloper(formData: FormData): Promise<ActionResul
     try {
       await adminAuth.deleteUser(userRecord.uid);
     } catch (deleteError) {
-      console.error("Error deleting developer user after claims failure:", deleteError);
+      console.error("Error deleting developer user after claims failure: UID ", userRecord.uid, deleteError);
     }
-    return { ok: false, error: "Failed to set custom developer user claims" };
+    return { ok: false, error: "We couldn't create your account, please try again" };
   }
 
   // create document in the developers collection of the database
@@ -84,14 +84,14 @@ export async function registerDeveloper(formData: FormData): Promise<ActionResul
     try {
       await adminAuth.deleteUser(userRecord.uid);
     } catch (deleteError) {
-      console.error("Error deleting developer user after document creation failure:", deleteError);
+      console.error("Error deleting developer user after document creation failure: UID ", userRecord.uid, deleteError);
     }
-    console.error("Error creating developer document:", error);
-    return { ok: false, error: "Failed to create developer document" };
+    console.error("Error creating developer document for UID ", userRecord.uid, error);
+    return { ok: false, error: "We couldn't create your account, please try again" };
   }
 
   if (!developerId) {
-    return { ok: false, error: "An error occurred while creating your account, please try again" };
+    return { ok: false, error: "An error occurred while creating your account" };
   }
 
   return { ok: true, data: "Account created successfully" };
