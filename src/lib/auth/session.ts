@@ -57,15 +57,22 @@ export async function deleteSession(): Promise<ActionResult<{ status: string }>>
   // created in the same second as the logout stays valid.
   try {
     await adminAuth.revokeRefreshTokens(user.uid);
-  } catch {
-    return { ok: false, error: 'Failed to revoke session' };
-  }
-
-  try {
-    const cookieStore = await cookies();
-    cookieStore.delete('session');
-  } catch {
-    return { ok: false, error: 'Failed to delete session cookie' };
+  } catch (error) {
+    console.error('Failed to revoke session for user: ', user.uid, error);
+    // Ideally, we would handle this error more gracefully, perhaps by retrying
+    // the operation in a task queue with exponentially increasing wait times.
+    // For now, we just log the error and proceed to delete the session cookie.
+    // We are not returning error state here because it would ultimately
+    // tell the user to retry logout, but they have already logged out and
+    // will keep getting the "retry logout" message.
+  } finally {
+    try {
+      const cookieStore = await cookies();
+      cookieStore.delete('session');
+    } catch (error) {
+      console.error('Failed to delete session cookie for user: ', user.uid, error);
+      // For now, we just log the error and proceed.
+    }
   }
 
   return { ok: true, data: { status: 'success' } };
