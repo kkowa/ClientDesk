@@ -1,34 +1,44 @@
 "use server";
 
 import { adminDb } from "@/src/lib/firebase/admin";
-import { getServerUser } from "@/src/lib/auth/auth-server";
-import { Role } from "@/src/types/role";
+import { WorkRequestStatus } from "@/src/types/work-request";
 import { ActionResult } from "@/src/types/action-result";
+import { requireClientId } from "@/src/lib/access-checks/require-client-id";
+import { getClientsDeveloperId } from "@/src/lib/data/get-clients-developer-id";
+
+// On success, returns the document ID of the newly created work request.
 
 export async function createWorkRequest(
   formData: FormData,
 ): Promise<ActionResult<string>> {
-  const serverUser = await getServerUser();
 
-  if (!serverUser || serverUser.role !== Role.Client) {
-    return {
-      ok: false,
-      error: "You must be signed in as a client to create a work request",
-    };
+  let clientId: string;
+  try {
+    const result = await requireClientId();
+    if (result.ok) {
+      clientId = result.data;
+    } else {
+      console.error("Client ID requirement failed:", result.error);
+      return { ok: false, error: "Client ID requirement failed" };
+    }
+  } catch (error) {
+    console.error("Failed to require client ID:", error);
+    return { ok: false, error: "Failed to require client ID" };
   }
 
-  const clientRef = adminDb.collection("clients").doc(serverUser.uid);
-  const clientSnap = await clientRef.get();
-
-  if (!clientSnap.exists) {
-    return {
-      ok: false,
-      error: "Client does not exist",
-    };
+  let developerId: string | null = null;
+  try {
+    const result = await getClientsDeveloperId(clientId);
+    if (result.ok) {
+      developerId = result.data;
+    } else {
+      console.error("Failed to get developer ID:", result.error);
+      return { ok: false, error: "Failed to get developer ID" };
+    }
+  } catch (error) {
+    console.error("Error while getting developer ID:", error);
+    return { ok: false, error: "Error while getting developer ID" };
   }
-
-  const clientData = clientSnap.data();
-  const developerId = clientData?.developerId;
 
   if (!developerId) {
     return {
@@ -37,24 +47,15 @@ export async function createWorkRequest(
     };
   }
 
-  const developerRef = adminDb.collection("developers").doc(developerId);
-  const developerSnap = await developerRef.get();
+  const title = (formData.get("title") as string).trim();
+  const description = (formData.get("description") as string).trim();
 
-  if (!developerSnap.exists) {
-    return {
-      ok: false,
-      error: "Developer does not exist",
-    };
-  }
-
-  const title = formData.get("title");
-  const description = formData.get("description");
-
+  // use Zod instead
   if (
     typeof title !== "string" ||
     typeof description !== "string" ||
-    !title.trim() ||
-    !description.trim()
+    !title ||
+    !description
   ) {
     return {
       ok: false,
@@ -62,17 +63,14 @@ export async function createWorkRequest(
     };
   }
 
-  const trimmedTitle = title.trim();
-  const trimmedDescription = description.trim();
-
   try {
     const now = new Date();
     const workRequestRef = await adminDb.collection("workRequests").add({
-      title: trimmedTitle,
-      description: trimmedDescription,
-      clientId: clientRef.id,
+      title,
+      description,
+      clientId,
       developerId,
-      status: "open",
+      status: WorkRequestStatus.Open,
       submittedAt: now,
       updatedAt: now,
     });

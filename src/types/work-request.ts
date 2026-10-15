@@ -11,7 +11,7 @@ export type WorkRequest = {
   clientId: string;
   title: string;
   description: string;
-  status: WorkRequestStatus.Open;
+  status: WorkRequestStatus;
   submittedAt: Date;
   updatedAt: Date;
 };
