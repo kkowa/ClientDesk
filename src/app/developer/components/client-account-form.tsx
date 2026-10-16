@@ -26,24 +26,45 @@ export function ClientAccountForm() {
     event.preventDefault();
     setError(null);
     setLoading(true);
-    try {
-      const result = await createClientInvitation(
-        new FormData(event.currentTarget),
-      );
-      if (!result.ok) {
-        setError(result.error);
-        return;
-      }
 
-      const { link, message } = buildInvitationMessage(
-        result.data,
-        window.location.origin,
-      );
-      setInvitation(result.data);
-      setRegistrationLink(link);
-      setMessage(message);
+    try {
+      if (mode === "create") {
+        const result = await createClientInvitation(
+          new FormData(event.currentTarget),
+        );
+
+        if (!result.ok) {
+          setError(result.error);
+          return;
+        }
+
+        const { link, message } = buildInvitationMessage(
+          result.data,
+          window.location.origin,
+        );
+
+        setInvitation(result.data);
+        setRegistrationLink(link);
+        setMessage(message);
+      } else {
+        const result = await resendClientInvitation(clientEmail);
+
+        if (!result.ok) {
+          setError(result.error);
+          return;
+        }
+
+        const { link, message } = buildInvitationMessage(
+          result.data,
+          window.location.origin,
+        );
+
+        setInvitation(result.data);
+        setRegistrationLink(link);
+        setMessage(message);
+      }
     } catch {
-      setError("We couldn't create the client account. Please try again");
+      setError("We couldn't process the request. Please try again");
     } finally {
       setLoading(false);
     }
@@ -144,7 +165,7 @@ export function ClientAccountForm() {
             )}
 
             {mode === "resend" && !invitation && (
-              <Button type="button" disabled={loading} onClick={handleResend}>
+              <Button type="submit" disabled={loading} onClick={handleResend}>
                 {loading ? "Resending..." : "Resend Invitation"}
               </Button>
             )}
