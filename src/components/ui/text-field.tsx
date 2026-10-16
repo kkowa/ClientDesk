@@ -16,7 +16,7 @@ export function TextField({
   onChange,
 }: TextFieldProps) {
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-1">
       <label htmlFor={name} className="text-sm font-medium">
         {label}
       </label>
@@ -27,7 +27,7 @@ export function TextField({
         required={required}
         value={value}
         onChange={onChange}
-        className="min-w-0 flex-1"
+        className="w-full"
       />
     </div>
   );
