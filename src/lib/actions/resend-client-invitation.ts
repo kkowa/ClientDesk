@@ -2,8 +2,7 @@
 
 import { randomBytes, createHash } from "crypto";
 import { adminDb } from "@/src/lib/firebase/admin";
-import { getServerUser } from "@/src/lib/auth/auth-server";
-import { Role } from "@/src/types/role";
+import { requireDeveloperId } from "@/src/lib/access-checks/require-developer-id";
 
 type ResendInvitationResult =
   | {
@@ -25,15 +24,24 @@ type ResendInvitationResult =
 const hashToken = (token: string) =>
   createHash("sha256").update(token).digest("hex");
 
-export async function resendClientInvitation(email: string, origin: string): Promise<ResendInvitationResult> {
-  const serverUser = await getServerUser();
-  if (!serverUser || serverUser.role !== Role.Developer) {
-    return { ok: false, error: "You must be signed in as a developer" };
+export async function resendClientInvitation(
+  email: string,
+  origin: string,
+): Promise<ResendInvitationResult> {
+  const developerResult = await requireDeveloperId();
+  if (!developerResult.ok) {
+    return {
+      ok: false,
+      error: "You must be signed in as a developer to create a client account",
+    };
   }
+
+  const developerId = developerResult.data;
 
   const snapshot = await adminDb
     .collection("clients")
     .where("email", "==", email.toLowerCase())
+    .where("developerId", "==", developerId)
     .limit(1)
     .get();
 
