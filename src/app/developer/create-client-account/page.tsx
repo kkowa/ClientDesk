@@ -1,11 +1,10 @@
 import { redirect } from "next/navigation";
-import { getServerUser } from "@/src/lib/auth/auth-server";
-import { Role } from "@/src/types/role";
+import { requireDeveloperId } from "@/src/lib/access-checks/require-developer-id";
 import { ClientAccountForm } from "@/src/app/developer/components/client-account-form";
 
 export default async function Page() {
-  const serverUser = await getServerUser();
-  if (!serverUser || serverUser.role !== Role.Developer) {
+  const developerResult = await requireDeveloperId();
+  if (!developerResult.ok) {
     redirect("/auth/login");
   }
 
