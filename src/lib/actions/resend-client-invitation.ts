@@ -84,11 +84,18 @@ export async function resendClientInvitation(
   const token = randomBytes(32).toString("hex");
   const expiresAt = Date.now() + 7 * 24 * 60 * 60 * 1000;
 
-  await doc.ref.update({
-    registrationTokenHash: hashToken(token),
-    registrationExpiresAt: expiresAt,
-    status: "invited",
-  });
+  try {
+    await doc.ref.update({
+      registrationTokenHash: hashToken(token),
+      registrationExpiresAt: expiresAt,
+      status: "invited",
+    });
+  } catch (error) {
+    return {
+      ok: false,
+      error: "We couldn't update the client invitation. Please try again.",
+    };
+  }
 
   const link = `${origin}/client/registration?uid=${encodeURIComponent(
     data.authUserId,
