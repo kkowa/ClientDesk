@@ -1,39 +1,14 @@
-import "server-only";
+export type Invitation = {
+  uid: string;
+  token: string;
+  clientName: string;
+  clientEmail: string;
+  developerName: string;
+};
 
-import { createHash, randomBytes } from "node:crypto";
-import { adminDb } from "@/src/lib/firebase/admin";
-import type { Developer } from "@/src/types/developer";
+export function buildInvitationMessage(invitation: Invitation, origin: string) {
+  const link = `${origin}/client/registration?uid=${encodeURIComponent(invitation.uid)}&token=${encodeURIComponent(invitation.token)}`;
+  const message = `Hello ${invitation.clientName},\n\nPlease click the link below to register for an account. I look forward to working with you.\n\n${link}\n\nBest Regards,\n${invitation.developerName}`;
 
-const developerConverter: FirebaseFirestore.FirestoreDataConverter<Developer> =
-  {
-    toFirestore(developer) {
-      return developer;
-    },
-    fromFirestore(snapshot) {
-      return snapshot.data() as Developer;
-    },
-  };
-
-export async function getDeveloperProfile(
-  developerId: string,
-): Promise<Developer | null> {
-  const snapshot = await adminDb
-    .collection("developers")
-    .doc(developerId)
-    .withConverter(developerConverter)
-    .get();
-
-  return snapshot.data() ?? null;
-}
-
-export function hashInvitationToken(token: string): string {
-  return createHash("sha256").update(token).digest("hex");
-}
-
-export function createInvitationCredentials() {
-  const token = randomBytes(32).toString("hex");
-  const tokenHash = hashInvitationToken(token);
-  const expiresAt = Date.now() + 7 * 24 * 60 * 60 * 1000;
-
-  return { token, tokenHash, expiresAt };
+  return { link, message };
 }

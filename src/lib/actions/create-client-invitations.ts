@@ -8,7 +8,8 @@ import {
   createInvitationCredentials,
   getDeveloperProfile,
   hashInvitationToken,
-} from "@/src/lib/actions/client-invitation-shared";
+} from "@/src/lib/actions/client-invitation-server";
+import type { Invitation } from "@/src/lib/actions/client-invitation-shared";
 import {
   clientAccountSchema,
   clientRegistrationSchema,
@@ -16,15 +17,9 @@ import {
 import { Role } from "@/src/types/role";
 import type { ActionResult } from "@/src/types/action-result";
 
-export async function createClientInvitation(formData: FormData): Promise<
-  ActionResult<{
-    uid: string;
-    token: string;
-    clientName: string;
-    clientEmail: string;
-    developerName: string;
-  }>
-> {
+export async function createClientInvitation(
+  formData: FormData,
+): Promise<ActionResult<Invitation>> {
   const developerResult = await requireDeveloperId();
   if (!developerResult.ok) {
     return {

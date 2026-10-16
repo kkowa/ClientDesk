@@ -5,23 +5,14 @@ import { requireDeveloperId } from "@/src/lib/access-checks/require-developer-id
 import {
   createInvitationCredentials,
   getDeveloperProfile,
-} from "@/src/lib/actions/client-invitation-shared";
+} from "@/src/lib/actions/client-invitation-server";
 import { clientAccountSchema } from "@/src/lib/validation/client-invitation";
 import type { ActionResult } from "@/src/types/action-result";
-
-type ResendInvitationData = {
-  uid: string;
-  token: string;
-  link: string;
-  clientName: string;
-  clientEmail: string;
-  developerName: string;
-};
+import type { Invitation } from "@/src/lib/actions/client-invitation-shared";
 
 export async function resendClientInvitation(
   email: string,
-  origin: string,
-): Promise<ActionResult<ResendInvitationData>> {
+): Promise<ActionResult<Invitation>> {
   const developerResult = await requireDeveloperId();
   if (!developerResult.ok) {
     return {
@@ -83,16 +74,11 @@ export async function resendClientInvitation(
     };
   }
 
-  const link = `${origin}/client/registration?uid=${encodeURIComponent(
-    data.authUserId,
-  )}&token=${encodeURIComponent(token)}`;
-
   return {
     ok: true,
     data: {
       uid: data.authUserId,
       token,
-      link,
       clientName: data.name,
       clientEmail: data.email,
       developerName,

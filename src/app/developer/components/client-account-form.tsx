@@ -6,14 +6,10 @@ import { ErrorMessage } from "@/src/components/ui/error-message";
 import { TextField } from "@/src/components/ui/text-field";
 import { createClientInvitation } from "@/src/lib/actions/create-client-invitations";
 import { resendClientInvitation } from "@/src/lib/actions/resend-client-invitation";
-
-type Invitation = {
-  uid: string;
-  token: string;
-  clientName: string;
-  clientEmail: string;
-  developerName: string;
-};
+import {
+  buildInvitationMessage,
+  type Invitation,
+} from "@/src/lib/actions/client-invitation-shared";
 
 export function ClientAccountForm() {
   const [invitation, setInvitation] = useState<Invitation | null>(null);
@@ -39,12 +35,13 @@ export function ClientAccountForm() {
         return;
       }
 
-      const link = `${window.location.origin}/client/registration?uid=${encodeURIComponent(result.data.uid)}&token=${encodeURIComponent(result.data.token)}`;
+      const { link, message } = buildInvitationMessage(
+        result.data,
+        window.location.origin,
+      );
       setInvitation(result.data);
       setRegistrationLink(link);
-      setMessage(
-        `Hello ${result.data.clientName},\n\nPlease click the link below to register for an account. I look forward to working with you.\n\n${link}\n\nBest Regards,\n${result.data.developerName}`,
-      );
+      setMessage(message);
     } catch {
       setError("We couldn't create the client account. Please try again");
     } finally {
@@ -57,29 +54,20 @@ export function ClientAccountForm() {
     setLoading(true);
 
     try {
-      const origin = window.location.origin;
-      const result = await resendClientInvitation(clientEmail, origin);
+      const result = await resendClientInvitation(clientEmail);
 
       if (!result.ok) {
         setError(result.error);
         return;
       }
 
-      const link = result.data.link;
-
-      setInvitation({
-        uid: result.data.uid,
-        token: result.data.token,
-        clientName: result.data.clientName,
-        clientEmail: result.data.clientEmail,
-        developerName: result.data.developerName,
-      });
-
-      setRegistrationLink(link);
-
-      setMessage(
-        `Hello ${result.data.clientName},\n\nPlease click the link below to register for an account. I look forward to working with you.\n\n${link}\n\nBest Regards,\n${result.data.developerName}`,
+      const { link, message } = buildInvitationMessage(
+        result.data,
+        window.location.origin,
       );
+      setInvitation(result.data);
+      setRegistrationLink(link);
+      setMessage(message);
     } catch {
       setError("We couldn't resend the invitation. Please try again.");
     } finally {
