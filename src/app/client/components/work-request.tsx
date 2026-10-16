@@ -6,7 +6,11 @@ import { useRouter } from "next/navigation";
 import { TextField } from "@/src/components/ui/text-field";
 import { TextArea } from "@/src/components/ui/text-area";
 
-export default function WorkRequest({ onClose }: { onClose: () => void }) {
+interface WorkRequestProps {
+  onClose: () => void;
+}
+
+export default function WorkRequest({ onClose }: WorkRequestProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
@@ -36,7 +40,7 @@ export default function WorkRequest({ onClose }: { onClose: () => void }) {
 
   return (
     <div>
-      {error && <p className="text-red-500">{error}</p>}
+      {error && <p className="text-error">{error}</p>}
       <form
         onSubmit={handleSubmit}
         className="relative flex flex-col justify-center items-center gap-4 w-full max-w-2xl bg-muted p-5 rounded-lg"

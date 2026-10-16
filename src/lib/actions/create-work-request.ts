@@ -5,13 +5,11 @@ import { WorkRequestStatus } from "@/src/types/work-request";
 import { ActionResult } from "@/src/types/action-result";
 import { requireClientId } from "@/src/lib/access-checks/require-client-id";
 import { getClientsDeveloperId } from "@/src/lib/data/get-clients-developer-id";
-
-// On success, returns the document ID of the newly created work request.
+import { WorkRequestSchema } from "../validation/work-request";
 
 export async function createWorkRequest(
   formData: FormData,
 ): Promise<ActionResult<string>> {
-
   let clientId: string;
   try {
     const result = await requireClientId();
@@ -50,13 +48,7 @@ export async function createWorkRequest(
   const title = (formData.get("title") as string).trim();
   const description = (formData.get("description") as string).trim();
 
-  // use Zod instead
-  if (
-    typeof title !== "string" ||
-    typeof description !== "string" ||
-    !title ||
-    !description
-  ) {
+  if (WorkRequestSchema.safeParse({ title, description }).success === false) {
     return {
       ok: false,
       error: "Title and description are required",
