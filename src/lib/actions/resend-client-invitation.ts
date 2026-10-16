@@ -3,6 +3,7 @@
 import { randomBytes, createHash } from "crypto";
 import { adminDb } from "@/src/lib/firebase/admin";
 import { requireDeveloperId } from "@/src/lib/access-checks/require-developer-id";
+import { Developer } from "@/src/types/developer";
 
 type ResendInvitationResult =
   | {
@@ -21,6 +22,16 @@ type ResendInvitationResult =
       error: string;
     };
 
+const developerConverter: FirebaseFirestore.FirestoreDataConverter<Developer> =
+  {
+    toFirestore(dev) {
+      return dev;
+    },
+    fromFirestore(snapshot) {
+      return snapshot.data() as Developer;
+    },
+  };
+
 const hashToken = (token: string) =>
   createHash("sha256").update(token).digest("hex");
 
@@ -37,6 +48,20 @@ export async function resendClientInvitation(
   }
 
   const developerId = developerResult.data;
+
+  const developerRef = adminDb
+    .collection("developers")
+    .doc(developerId)
+    .withConverter(developerConverter);
+
+  const developerSnapshot = await developerRef.get();
+
+  if (!developerSnapshot.exists) {
+    return { ok: false, error: "Your developer profile could not be found" };
+  }
+
+  const developerData = developerSnapshot.data();
+  const developerName = developerData?.name ?? "";
 
   const snapshot = await adminDb
     .collection("clients")
@@ -77,7 +102,7 @@ export async function resendClientInvitation(
       link,
       clientName: data.name,
       clientEmail: data.email,
-      developerName: data.developerName,
+      developerName,
     },
   };
 }
