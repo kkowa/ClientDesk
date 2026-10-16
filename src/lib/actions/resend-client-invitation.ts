@@ -4,6 +4,7 @@ import { randomBytes, createHash } from "crypto";
 import { adminDb } from "@/src/lib/firebase/admin";
 import { requireDeveloperId } from "@/src/lib/access-checks/require-developer-id";
 import { Developer } from "@/src/types/developer";
+import { clientAccountSchema } from "@/src/lib/validation/client-invitation";
 
 type ResendInvitationResult =
   | {
@@ -62,6 +63,17 @@ export async function resendClientInvitation(
 
   const developerData = developerSnapshot.data();
   const developerName = developerData?.name ?? "";
+
+  const parsed = clientAccountSchema.pick({ email: true }).safeParse({
+    email,
+  });
+
+  if (!parsed.success) {
+    return {
+      ok: false,
+      error: "Please enter a valid email address",
+    };
+  }
 
   const snapshot = await adminDb
     .collection("clients")
