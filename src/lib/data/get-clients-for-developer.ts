@@ -16,7 +16,7 @@ export async function getClientsForDeveloper(developerId: string) {
     const data = doc.data();
 
     return {
-      id: doc.id,
+      id: data.authUserId,
       name: data.name,
       email: data.email,
       status: data.status,

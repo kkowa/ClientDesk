@@ -4,30 +4,26 @@ import { getServerUser } from "@/src/lib/auth/auth-server";
 import { Role } from "@/src/types/role";
 import { Card } from "@/src/components/ui/card";
 import { EmptyState } from "@/src/components/ui/empty-state";
-import { getClientsForDeveloper } from "@/src/app/developer/clients/sample-clients";
-
+import { getClientsForDeveloper } from "@/src/lib/data/get-clients-for-developer";
 
 export default async function Page() {
-
   const serverUser = await getServerUser();
 
   // kick to login if not authenticated
   if (!serverUser) {
-    redirect('/auth/login');
+    redirect("/auth/login");
   }
 
   // kick to login if role is not developer
   if (serverUser.role !== Role.Developer) {
-    redirect('/auth/login');
+    redirect("/auth/login");
   }
 
   const clients = await getClientsForDeveloper(serverUser.uid);
 
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-4 py-8">
-      <h1 className="text-2xl font-bold">
-        Clients
-      </h1>
+      <h1 className="text-2xl font-bold">Clients</h1>
       {clients.length === 0 ? (
         <EmptyState
           title="No clients yet"
