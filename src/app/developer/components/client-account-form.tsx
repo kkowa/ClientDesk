@@ -106,13 +106,26 @@ export function ClientAccountForm() {
           </h1>
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-            <TextField
-              label="Client Full Name"
-              name="name"
-              required
-              value={clientName}
-              onChange={(event) => setClientName(event.target.value)}
-            />
+            {mode === "create" && (
+              <TextField
+                label="Client Full Name"
+                name="name"
+                required
+                value={clientName}
+                onChange={(event) => setClientName(event.target.value)}
+              />
+            )}
+
+            {mode === "create" && (
+              <TextField
+                label="Client Full Name"
+                name="name"
+                required
+                value={clientName}
+                onChange={(event) => setClientName(event.target.value)}
+              />
+            )}
+
             <TextField
               label="Client Email"
               name="email"
