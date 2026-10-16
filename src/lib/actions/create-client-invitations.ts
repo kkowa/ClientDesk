@@ -1,29 +1,20 @@
 "use server";
 
-import { createHash, randomBytes } from "node:crypto";
+import { randomBytes } from "node:crypto";
 import { FieldValue } from "firebase-admin/firestore";
 import { adminAuth, adminDb } from "@/src/lib/firebase/admin";
 import { requireDeveloperId } from "@/src/lib/access-checks/require-developer-id";
+import {
+  createInvitationCredentials,
+  getDeveloperProfile,
+  hashInvitationToken,
+} from "@/src/lib/actions/client-invitation-shared";
 import {
   clientAccountSchema,
   clientRegistrationSchema,
 } from "@/src/lib/validation/client-invitation";
 import { Role } from "@/src/types/role";
 import type { ActionResult } from "@/src/types/action-result";
-import type { Developer } from "@/src/types/developer";
-
-const developerConverter: FirebaseFirestore.FirestoreDataConverter<Developer> = {
-  toFirestore(dev: Developer) {
-    return dev;
-  },
-  fromFirestore(snapshot) {
-    return snapshot.data() as Developer;
-  },
-};
-
-
-const hashToken = (token: string) =>
-  createHash("sha256").update(token).digest("hex");
 
 export async function createClientInvitation(formData: FormData): Promise<
   ActionResult<{
@@ -75,18 +66,7 @@ export async function createClientInvitation(formData: FormData): Promise<
   }
 
   try {
-    const developerRef = adminDb
-      .collection("developers")
-      .doc(developerId)
-      .withConverter(developerConverter);
-
-    const developerSnapshot = await developerRef.get();
-
-    if (!developerSnapshot.exists) {
-      return { ok: false, error: "Your developer profile could not be found" };
-    }
-
-    const developerData = developerSnapshot.data();
+    const developerData = await getDeveloperProfile(developerId);
     if (!developerData) {
       return { ok: false, error: "Your developer profile could not be found" };
     }
@@ -100,8 +80,7 @@ export async function createClientInvitation(formData: FormData): Promise<
       };
     }
 
-    const token = randomBytes(32).toString("hex");
-    const expiresAt = Date.now() + 7 * 24 * 60 * 60 * 1000;
+    const { token, tokenHash, expiresAt } = createInvitationCredentials();
     const temporaryPassword = randomBytes(32).toString("base64url");
     const userRecord = await adminAuth.createUser({
       email,
@@ -114,19 +93,16 @@ export async function createClientInvitation(formData: FormData): Promise<
         role: Role.Client,
       });
 
-      await adminDb
-        .collection("clients")
-        .doc(userRecord.uid)
-        .set({
-          authUserId: userRecord.uid,
-          developerId,
-          name,
-          email,
-          status: "invited",
-          registrationTokenHash: hashToken(token),
-          registrationExpiresAt: expiresAt,
-          createdAt: new Date(),
-        });
+      await adminDb.collection("clients").doc(userRecord.uid).set({
+        authUserId: userRecord.uid,
+        developerId,
+        name,
+        email,
+        status: "invited",
+        registrationTokenHash: tokenHash,
+        registrationExpiresAt: expiresAt,
+        createdAt: new Date(),
+      });
     } catch {
       try {
         await adminAuth.deleteUser(userRecord.uid);
@@ -197,7 +173,7 @@ export async function completeClientRegistration(
   }
 
   const clientRef = adminDb.collection("clients").doc(uid);
-  const tokenHash = hashToken(token);
+  const tokenHash = hashInvitationToken(token);
   let inviteData: { name: string; registrationExpiresAt: number };
   try {
     inviteData = await adminDb.runTransaction(async (transaction) => {

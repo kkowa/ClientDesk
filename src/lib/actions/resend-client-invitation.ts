@@ -1,45 +1,27 @@
 "use server";
 
-import { randomBytes, createHash } from "crypto";
 import { adminDb } from "@/src/lib/firebase/admin";
 import { requireDeveloperId } from "@/src/lib/access-checks/require-developer-id";
-import { Developer } from "@/src/types/developer";
+import {
+  createInvitationCredentials,
+  getDeveloperProfile,
+} from "@/src/lib/actions/client-invitation-shared";
 import { clientAccountSchema } from "@/src/lib/validation/client-invitation";
+import type { ActionResult } from "@/src/types/action-result";
 
-type ResendInvitationResult =
-  | {
-      ok: true;
-      data: {
-        uid: string;
-        token: string;
-        link: string;
-        clientName: string;
-        clientEmail: string;
-        developerName: string;
-      };
-    }
-  | {
-      ok: false;
-      error: string;
-    };
-
-const developerConverter: FirebaseFirestore.FirestoreDataConverter<Developer> =
-  {
-    toFirestore(dev) {
-      return dev;
-    },
-    fromFirestore(snapshot) {
-      return snapshot.data() as Developer;
-    },
-  };
-
-const hashToken = (token: string) =>
-  createHash("sha256").update(token).digest("hex");
+type ResendInvitationData = {
+  uid: string;
+  token: string;
+  link: string;
+  clientName: string;
+  clientEmail: string;
+  developerName: string;
+};
 
 export async function resendClientInvitation(
   email: string,
   origin: string,
-): Promise<ResendInvitationResult> {
+): Promise<ActionResult<ResendInvitationData>> {
   const developerResult = await requireDeveloperId();
   if (!developerResult.ok) {
     return {
@@ -50,19 +32,12 @@ export async function resendClientInvitation(
 
   const developerId = developerResult.data;
 
-  const developerRef = adminDb
-    .collection("developers")
-    .doc(developerId)
-    .withConverter(developerConverter);
-
-  const developerSnapshot = await developerRef.get();
-
-  if (!developerSnapshot.exists) {
+  const developerData = await getDeveloperProfile(developerId);
+  if (!developerData) {
     return { ok: false, error: "Your developer profile could not be found" };
   }
 
-  const developerData = developerSnapshot.data();
-  const developerName = developerData?.name ?? "";
+  const developerName = developerData.name ?? "";
 
   const parsed = clientAccountSchema.pick({ email: true }).safeParse({
     email,
@@ -93,16 +68,15 @@ export async function resendClientInvitation(
     return { ok: false, error: "This client cannot be re-invited" };
   }
 
-  const token = randomBytes(32).toString("hex");
-  const expiresAt = Date.now() + 7 * 24 * 60 * 60 * 1000;
+  const { token, tokenHash, expiresAt } = createInvitationCredentials();
 
   try {
     await doc.ref.update({
-      registrationTokenHash: hashToken(token),
+      registrationTokenHash: tokenHash,
       registrationExpiresAt: expiresAt,
       status: "invited",
     });
-  } catch (error) {
+  } catch {
     return {
       ok: false,
       error: "We couldn't update the client invitation. Please try again.",
