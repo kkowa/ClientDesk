@@ -185,27 +185,25 @@ export function ClientAccountForm() {
 
             {invitation && (
               <div className="flex flex-col gap-3">
-                <button
+                <Button
                   type="button"
                   onClick={() => {
                     resetForm();
                     setMode("create");
                   }}
-                  className="px-4 py-2 rounded-md bg-gray-200 hover:bg-gray-300 text-black"
                 >
                   Create Another Account
-                </button>
+                </Button>
 
-                <button
+                <Button
                   type="button"
                   onClick={() => {
                     resetForm();
                     setMode("resend");
                   }}
-                  className="px-4 py-2 rounded-md bg-gray-200 hover:bg-gray-300 text-black"
                 >
                   Resend an Invitation
-                </button>
+                </Button>
               </div>
             )}
 
