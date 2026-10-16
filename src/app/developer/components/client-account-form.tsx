@@ -137,16 +137,6 @@ export function ClientAccountForm() {
               />
             )}
 
-            {mode === "create" && (
-              <TextField
-                label="Client Full Name"
-                name="name"
-                required
-                value={clientName}
-                onChange={(event) => setClientName(event.target.value)}
-              />
-            )}
-
             <TextField
               label="Client Email"
               name="email"
@@ -207,7 +197,7 @@ export function ClientAccountForm() {
               </div>
             )}
 
-            {mode === "create" && (
+            {mode === "create" && !invitation && (
               <p className="text-sm text-muted">
                 Need to resend an invitation?{" "}
                 <button
