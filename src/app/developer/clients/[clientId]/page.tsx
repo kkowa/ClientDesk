@@ -5,7 +5,11 @@ import { requireDeveloperId } from "@/src/lib/access-checks/require-developer-id
 import { getClientForDeveloper } from "@/src/lib/data/get-client-for-developer";
 
 
-export default async function Page({ params }: PageProps<"/developer/clients/[clientId]">) {
+type PageProps = {
+  params: Promise<{ clientId: string }>;
+};
+
+export default async function Page({ params }: PageProps) {
   const { clientId } = await params;
 
   const developerResult = await requireDeveloperId();

@@ -1,11 +1,12 @@
 import "server-only";
 
 import { adminDb } from "@/src/lib/firebase/admin";
+import { Client } from "@/src/types/client";
 
 export async function getClientForDeveloper(
   clientId: string,
-  developerId: string,
-) {
+  developerId: string
+): Promise<Client | null>  {
   if (!developerId) {
     throw new Error("Developer ID is required");
   }
@@ -28,10 +29,11 @@ export async function getClientForDeveloper(
   const data = doc.data();
 
   return {
-    id: data.authUserId,
+    authUserId: data.authUserId,
+    developerId: data.developerId,
     name: data.name,
     email: data.email,
     status: data.status,
-    createdAt: data.createdAt,
+    createdAt: data.createdAt.toDate().toISOString(),
   };
 }

@@ -25,9 +25,9 @@ export default async function Page() {
       ) : (
         <ul className="flex flex-col gap-3">
           {clients.map((client) => (
-            <li key={client.id}>
+            <li key={client.authUserId}>
               <Link
-                href={`/developer/clients/${client.id}`}
+                href={`/developer/clients/${client.authUserId}`}
                 className="block rounded-xl hover:ring-2 hover:ring-primary"
               >
                 <Card>
