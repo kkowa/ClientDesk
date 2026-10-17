@@ -37,6 +37,8 @@ export default async function Page({ params }: PageProps) {
           <dd className="break-all">{client.email}</dd>
           <dt className="text-sm text-muted">Status</dt>
           <dd className="capitalize">{client.status}</dd>
+          <dt className="text-sm text-muted">Added</dt>
+          <dd>{new Date(client.createdAt).toLocaleDateString()}</dd>
         </dl>
       </Card>
     </div>
