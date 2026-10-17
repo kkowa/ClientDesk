@@ -3,7 +3,8 @@ import { notFound, redirect } from "next/navigation";
 import { getServerUser } from "@/src/lib/auth/auth-server";
 import { Role } from "@/src/types/role";
 import { Card } from "@/src/components/ui/card";
-import { getClientForDeveloper } from "@/src/app/developer/clients/sample-clients";
+import { requireDeveloperId } from "@/src/lib/access-checks/require-developer-id";
+import { getClientForDeveloper } from "@/src/lib/data/get-client-for-developer";
 
 
 export default async function Page({ params }: PageProps<"/developer/clients/[clientId]">) {
@@ -21,8 +22,14 @@ export default async function Page({ params }: PageProps<"/developer/clients/[cl
     redirect('/auth/login');
   }
 
+  // clients are linked by the developer's Firestore doc ID, not their auth uid
+  const developerIdResult = await requireDeveloperId(serverUser);
+  if (!developerIdResult.ok) {
+    redirect('/auth/login');
+  }
+
   // null when the client doesn't exist or belongs to another developer
-  const client = await getClientForDeveloper(serverUser.uid, clientId);
+  const client = await getClientForDeveloper(clientId, developerIdResult.data);
   if (!client) {
     notFound();
   }
@@ -41,8 +48,6 @@ export default async function Page({ params }: PageProps<"/developer/clients/[cl
           <dd className="break-all">{client.email}</dd>
           <dt className="text-sm text-muted">Status</dt>
           <dd className="capitalize">{client.status}</dd>
-          <dt className="text-sm text-muted">Added</dt>
-          <dd>{client.createdAt.toLocaleDateString()}</dd>
         </dl>
       </Card>
     </div>

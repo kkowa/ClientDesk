@@ -4,6 +4,7 @@ import { getServerUser } from "@/src/lib/auth/auth-server";
 import { Role } from "@/src/types/role";
 import { Card } from "@/src/components/ui/card";
 import { EmptyState } from "@/src/components/ui/empty-state";
+import { requireDeveloperId } from "@/src/lib/access-checks/require-developer-id";
 import { getClientsForDeveloper } from "@/src/lib/data/get-clients-for-developer";
 
 export default async function Page() {
@@ -19,7 +20,13 @@ export default async function Page() {
     redirect("/auth/login");
   }
 
-  const clients = await getClientsForDeveloper(serverUser.uid);
+  // clients are linked by the developer's Firestore doc ID, not their auth uid
+  const developerIdResult = await requireDeveloperId(serverUser);
+  if (!developerIdResult.ok) {
+    redirect("/auth/login");
+  }
+
+  const clients = await getClientsForDeveloper(developerIdResult.data);
 
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-4 py-8">
@@ -32,9 +39,9 @@ export default async function Page() {
       ) : (
         <ul className="flex flex-col gap-3">
           {clients.map((client) => (
-            <li key={client.authUserId}>
+            <li key={client.id}>
               <Link
-                href={`/developer/clients/${client.authUserId}`}
+                href={`/developer/clients/${client.id}`}
                 className="block rounded-xl hover:ring-2 hover:ring-primary"
               >
                 <Card>
