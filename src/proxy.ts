@@ -15,7 +15,17 @@ export async function proxy(request: NextRequest) {
       true,
     );
 
-    if (decodedClaims.role !== Role.Developer) {
+    if (
+      request.nextUrl.pathname.startsWith("/developer") &&
+      decodedClaims.role !== Role.Developer
+    ) {
+      return NextResponse.redirect(new URL("/auth/login", request.url));
+    }
+
+    if (
+      request.nextUrl.pathname.startsWith("/client") &&
+      decodedClaims.role !== Role.Client
+    ) {
       return NextResponse.redirect(new URL("/auth/login", request.url));
     }
   } catch (error) {
@@ -33,5 +43,9 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/developer/dashboard/:path*"],
+  matcher: [
+    "/developer/dashboard/:path*",
+    "/developer/create-client-account/:path*",
+    "/client/dashboard/:path*",
+  ],
 };
