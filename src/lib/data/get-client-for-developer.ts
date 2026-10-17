@@ -32,5 +32,6 @@ export async function getClientForDeveloper(
     name: data.name,
     email: data.email,
     status: data.status,
+    createdAt: data.createdAt,
   };
 }

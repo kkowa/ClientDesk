@@ -1,7 +1,5 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { getServerUser } from "@/src/lib/auth/auth-server";
-import { Role } from "@/src/types/role";
 import { Card } from "@/src/components/ui/card";
 import { requireDeveloperId } from "@/src/lib/access-checks/require-developer-id";
 import { getClientForDeveloper } from "@/src/lib/data/get-client-for-developer";
@@ -10,26 +8,13 @@ import { getClientForDeveloper } from "@/src/lib/data/get-client-for-developer";
 export default async function Page({ params }: PageProps<"/developer/clients/[clientId]">) {
   const { clientId } = await params;
 
-  const serverUser = await getServerUser();
-
-  // kick to login if not authenticated
-  if (!serverUser) {
-    redirect('/auth/login');
-  }
-
-  // kick to login if role is not developer
-  if (serverUser.role !== Role.Developer) {
-    redirect('/auth/login');
-  }
-
-  // clients are linked by the developer's Firestore doc ID, not their auth uid
-  const developerIdResult = await requireDeveloperId(serverUser);
-  if (!developerIdResult.ok) {
-    redirect('/auth/login');
+  const developerResult = await requireDeveloperId();
+  if (!developerResult.ok) {
+    redirect("/auth/login");
   }
 
   // null when the client doesn't exist or belongs to another developer
-  const client = await getClientForDeveloper(clientId, developerIdResult.data);
+  const client = await getClientForDeveloper(clientId, developerResult.data);
   if (!client) {
     notFound();
   }
