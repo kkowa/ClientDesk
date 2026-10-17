@@ -4,12 +4,11 @@ import { Card } from "@/src/components/ui/card";
 import { requireDeveloperId } from "@/src/lib/access-checks/require-developer-id";
 import { getClientForDeveloper } from "@/src/lib/data/get-client-for-developer";
 
-
-type PageProps = {
-  params: Promise<{ clientId: string }>;
-};
-
-export default async function Page({ params }: PageProps) {
+export default async function Page({
+  params,
+}: {
+  params: { clientId: string };
+}) {
   const { clientId } = await params;
 
   const developerResult = await requireDeveloperId();
@@ -25,12 +24,13 @@ export default async function Page({ params }: PageProps) {
 
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-4 py-8">
-      <Link href="/developer/clients" className="w-fit text-sm hover:text-primary">
+      <Link
+        href="/developer/clients"
+        className="w-fit text-sm hover:text-primary"
+      >
         ← Back to clients
       </Link>
-      <h1 className="text-2xl font-bold">
-        {client.name}
-      </h1>
+      <h1 className="text-2xl font-bold">{client.name}</h1>
       <Card>
         <dl className="grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-[auto_1fr]">
           <dt className="text-sm text-muted">Email</dt>

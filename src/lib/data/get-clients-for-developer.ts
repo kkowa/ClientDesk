@@ -3,7 +3,9 @@ import "server-only";
 import { adminDb } from "@/src/lib/firebase/admin";
 import { Client } from "@/src/types/client";
 
-export async function getClientsForDeveloper(developerId: string): Promise<Client[]> {
+export async function getClientsForDeveloper(
+  developerId: string,
+): Promise<Client[]> {
   if (!developerId) {
     throw new Error("Developer ID is required");
   }
