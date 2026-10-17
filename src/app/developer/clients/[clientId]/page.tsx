@@ -9,18 +9,6 @@ import { getClientForDeveloper } from "@/src/app/developer/clients/sample-client
 export default async function Page({ params }: PageProps<"/developer/clients/[clientId]">) {
   const { clientId } = await params;
 
-  const serverUser = await getServerUser();
-
-  // kick to login if not authenticated
-  if (!serverUser) {
-    redirect('/auth/login');
-  }
-
-  // kick to login if role is not developer
-  if (serverUser.role !== Role.Developer) {
-    redirect('/auth/login');
-  }
-
   // null when the client doesn't exist or belongs to another developer
   const client = await getClientForDeveloper(serverUser.uid, clientId);
   if (!client) {

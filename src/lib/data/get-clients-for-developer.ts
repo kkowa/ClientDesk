@@ -1,4 +1,4 @@
-"use server";
+import "server-only";
 
 import { adminDb } from "@/src/lib/firebase/admin";
 
@@ -20,6 +20,7 @@ export async function getClientsForDeveloper(developerId: string) {
       name: data.name,
       email: data.email,
       status: data.status,
+      createdAt: data.createdAt,
     };
   });
 
