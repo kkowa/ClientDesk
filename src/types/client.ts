@@ -4,5 +4,5 @@ export type Client = {
   name: string;
   email: string;
   status: string;
-  createdAt: string; // ISO date string, converted in lib/data
+  createdAt: Date;
 }
