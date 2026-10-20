@@ -14,6 +14,7 @@ export async function resendClientInvitation(
   email: string,
 ): Promise<ActionResult<Invitation>> {
   const developerResult = await requireDeveloperId();
+
   if (!developerResult.ok) {
     return {
       ok: false,
@@ -24,6 +25,7 @@ export async function resendClientInvitation(
   const developerId = developerResult.data;
 
   const developerData = await getDeveloperProfile(developerId);
+
   if (!developerData) {
     return { ok: false, error: "Your developer profile could not be found" };
   }
@@ -52,36 +54,67 @@ export async function resendClientInvitation(
     return { ok: false, error: "No client found with this email" };
   }
 
-  const doc = snapshot.docs[0];
-  const data = doc.data();
-
-  if (data.status !== "invited" && data.status !== "activation_failed") {
-    return { ok: false, error: "This client cannot be re-invited" };
-  }
+  const docRef = snapshot.docs[0].ref;
 
   const { token, tokenHash, expiresAt } = createInvitationCredentials();
 
   try {
-    await doc.ref.update({
-      registrationTokenHash: tokenHash,
-      registrationExpiresAt: expiresAt,
-      status: "invited",
-    });
+    const transactionResult = await adminDb.runTransaction(
+      async (transaction) => {
+        const snap = await transaction.get(docRef);
+
+        if (!snap.exists) {
+          return {
+            ok: false,
+            error: "No client found with this email",
+          } as const;
+        }
+
+        const data = snap.data();
+
+        if (
+          data?.status !== "invited" &&
+          data?.status !== "activation_failed"
+        ) {
+          return {
+            ok: false,
+            error: "This client cannot be re-invited",
+          } as const;
+        }
+
+        transaction.update(docRef, {
+          registrationTokenHash: tokenHash,
+          registrationExpiresAt: expiresAt,
+          status: "invited",
+        });
+
+        return {
+          ok: true,
+          data,
+        } as const;
+      },
+    );
+
+    if (!transactionResult.ok) {
+      return transactionResult;
+    }
+
+    const client = transactionResult.data;
+
+    return {
+      ok: true,
+      data: {
+        uid: client.authUserId,
+        token,
+        clientName: client.name,
+        clientEmail: client.email,
+        developerName,
+      },
+    };
   } catch {
     return {
       ok: false,
       error: "We couldn't update the client invitation. Please try again.",
     };
   }
-
-  return {
-    ok: true,
-    data: {
-      uid: data.authUserId,
-      token,
-      clientName: data.name,
-      clientEmail: data.email,
-      developerName,
-    },
-  };
 }
