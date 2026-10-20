@@ -30,7 +30,14 @@ export async function resendClientInvitation(
     return { ok: false, error: "Your developer profile could not be found" };
   }
 
-  const developerName = developerData.name ?? "";
+  const developerName = developerData.name;
+  if (!developerName.trim()) {
+    return {
+      ok: false,
+      error:
+        "Add your full name to your developer profile before inviting a client",
+    };
+  }
 
   const parsed = clientAccountSchema.pick({ email: true }).safeParse({
     email,
