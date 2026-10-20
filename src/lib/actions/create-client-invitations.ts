@@ -6,7 +6,6 @@ import { adminAuth, adminDb } from "@/src/lib/firebase/admin";
 import { requireDeveloperId } from "@/src/lib/access-checks/require-developer-id";
 import {
   createInvitationCredentials,
-  getDeveloperProfile,
   hashInvitationToken,
 } from "@/src/lib/actions/client-invitation-server";
 import type { Invitation } from "@/src/lib/actions/client-invitation-shared";
@@ -16,6 +15,7 @@ import {
 } from "@/src/lib/validation/client-invitation";
 import { Role } from "@/src/types/role";
 import type { ActionResult } from "@/src/types/action-result";
+import { getUserContact } from "../data/get-user-contact";
 
 export async function createClientInvitation(
   formData: FormData,
@@ -61,13 +61,25 @@ export async function createClientInvitation(
   }
 
   try {
-    const developerData = await getDeveloperProfile(developerId);
-    if (!developerData) {
-      return { ok: false, error: "Your developer profile could not be found" };
+    let developerName: string;
+    try {
+      const developerContact = await getUserContact(developerId, Role.Developer);
+      if (!developerContact.ok) {
+        return {
+          ok: false,
+          error:
+            "We couldn't retrieve your developer profile. Please try again.",
+        };
+      }
+      developerName = developerContact.data.name;
+    } catch {
+      return {
+        ok: false,
+        error: "We couldn't retrieve your developer profile. Please try again.",
+      };
     }
 
-    const developerName = developerData.name;
-    if (!developerName.trim()) {
+    if (!developerName.trim() || developerName === "N/A") {
       return {
         ok: false,
         error:
