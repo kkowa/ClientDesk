@@ -43,7 +43,7 @@ export async function resendClientInvitation(
 
   const snapshot = await adminDb
     .collection("clients")
-    .where("email", "==", email.toLowerCase())
+    .where("email", "==", parsed.data.email.toLowerCase())
     .where("developerId", "==", developerId)
     .limit(1)
     .get();
