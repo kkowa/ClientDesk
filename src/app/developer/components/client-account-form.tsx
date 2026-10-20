@@ -70,32 +70,6 @@ export function ClientAccountForm() {
     }
   }
 
-  async function handleResend() {
-    setError(null);
-    setLoading(true);
-
-    try {
-      const result = await resendClientInvitation(clientEmail);
-
-      if (!result.ok) {
-        setError(result.error);
-        return;
-      }
-
-      const { link, message } = buildInvitationMessage(
-        result.data,
-        window.location.origin,
-      );
-      setInvitation(result.data);
-      setRegistrationLink(link);
-      setMessage(message);
-    } catch {
-      setError("We couldn't resend the invitation. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  }
-
   async function copyValue(value: string, label: string) {
     try {
       await navigator.clipboard.writeText(value);
@@ -155,7 +129,7 @@ export function ClientAccountForm() {
             )}
 
             {mode === "resend" && !invitation && (
-              <Button type="submit" disabled={loading} onClick={handleResend}>
+              <Button type="submit" disabled={loading}>
                 {loading ? "Resending..." : "Resend Invitation"}
               </Button>
             )}
