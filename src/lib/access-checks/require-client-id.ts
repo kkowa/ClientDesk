@@ -41,7 +41,7 @@ export async function requireClientId(user?: ServerUser | null, clientId?: strin
       }
       const ownClientId = snapshot.docs[0].id;
 
-      if (clientId === undefined || clientId !== ownClientId) {
+      if (clientId && clientId !== ownClientId) {
         return { ok: false, error: "Access denied" };
       }
 
