@@ -5,14 +5,11 @@ import { Button } from "@/src/components/ui/button";
 import { ErrorMessage } from "@/src/components/ui/error-message";
 import { TextField } from "@/src/components/ui/text-field";
 import { createClientInvitation } from "@/src/lib/actions/create-client-invitations";
-
-type Invitation = {
-  uid: string;
-  token: string;
-  clientName: string;
-  clientEmail: string;
-  developerName: string;
-};
+import { resendClientInvitation } from "@/src/lib/actions/resend-client-invitation";
+import {
+  buildInvitationMessage,
+  type Invitation,
+} from "@/src/lib/actions/client-invitation-shared";
 
 export function ClientAccountForm() {
   const [invitation, setInvitation] = useState<Invitation | null>(null);
@@ -21,28 +18,53 @@ export function ClientAccountForm() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState<string | null>(null);
+  const [clientName, setClientName] = useState("");
+  const [clientEmail, setClientEmail] = useState("");
+  const [mode, setMode] = useState<"create" | "resend">("create");
 
   async function handleSubmit(event: React.SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
     setError(null);
     setLoading(true);
-    try {
-      const result = await createClientInvitation(
-        new FormData(event.currentTarget),
-      );
-      if (!result.ok) {
-        setError(result.error);
-        return;
-      }
 
-      const link = `${window.location.origin}/client/registration?uid=${encodeURIComponent(result.data.uid)}&token=${encodeURIComponent(result.data.token)}`;
-      setInvitation(result.data);
-      setRegistrationLink(link);
-      setMessage(
-        `Hello ${result.data.clientName},\n\nPlease click the link below to register for an account. I look forward to working with you.\n\n${link}\n\nBest Regards,\n${result.data.developerName}`,
-      );
+    try {
+      if (mode === "create") {
+        const result = await createClientInvitation(
+          new FormData(event.currentTarget),
+        );
+
+        if (!result.ok) {
+          setError(result.error);
+          return;
+        }
+
+        const { link, message } = buildInvitationMessage(
+          result.data,
+          window.location.origin,
+        );
+
+        setInvitation(result.data);
+        setRegistrationLink(link);
+        setMessage(message);
+      } else {
+        const result = await resendClientInvitation(clientEmail);
+
+        if (!result.ok) {
+          setError(result.error);
+          return;
+        }
+
+        const { link, message } = buildInvitationMessage(
+          result.data,
+          window.location.origin,
+        );
+
+        setInvitation(result.data);
+        setRegistrationLink(link);
+        setMessage(message);
+      }
     } catch {
-      setError("We couldn't create the client account. Please try again");
+      setError("We couldn't process the request. Please try again");
     } finally {
       setLoading(false);
     }
@@ -60,23 +82,107 @@ export function ClientAccountForm() {
     }
   }
 
+  function resetForm() {
+    setInvitation(null);
+    setMessage("");
+    setRegistrationLink("");
+    setError(null);
+    setCopied(null);
+    setClientName("");
+    setClientEmail("");
+  }
+
   return (
     <main className="mx-auto grid min-h-dvh w-full max-w-6xl grid-cols-1 gap-8 px-6 py-10 md:grid-cols-2 md:items-start md:gap-12">
       <div className="flex flex-col gap-5">
         <section className="rounded-xl border-2 border-foreground p-6">
-          <h1 className="mb-6 text-2xl font-bold">Create Client Account</h1>
+          <h1 className="mb-6 text-2xl font-bold">
+            {mode === "create" ? "Create Client Account" : "Resend Invitation"}
+          </h1>
+
           <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-            <TextField label="Client Full Name" name="name" required />
+            {mode === "create" && (
+              <TextField
+                label="Client Full Name"
+                name="name"
+                required
+                value={clientName}
+                onChange={(event) => setClientName(event.target.value)}
+              />
+            )}
+
             <TextField
               label="Client Email"
               name="email"
               type="email"
               required
+              value={clientEmail}
+              onChange={(event) => setClientEmail(event.target.value)}
             />
+
             <ErrorMessage message={error} />
-            <Button type="submit" disabled={loading || Boolean(invitation)}>
-              {loading ? "Creating account..." : "Create Client Account"}
-            </Button>
+
+            {mode === "create" && !invitation && (
+              <Button type="submit" disabled={loading}>
+                {loading ? "Creating account..." : "Create Client Account"}
+              </Button>
+            )}
+
+            {mode === "resend" && !invitation && (
+              <Button type="submit" disabled={loading}>
+                {loading ? "Resending..." : "Resend Invitation"}
+              </Button>
+            )}
+
+            {mode === "resend" && !invitation && (
+              <p className="text-sm text-muted">
+                Want to create a new client instead?{" "}
+                <button
+                  type="button"
+                  className="text-blue-600 underline cursor-pointer"
+                  onClick={() => setMode("create")}
+                >
+                  Back to Create Client Account
+                </button>
+              </p>
+            )}
+
+            {invitation && (
+              <div className="flex flex-col gap-3">
+                <Button
+                  type="button"
+                  onClick={() => {
+                    resetForm();
+                    setMode("create");
+                  }}
+                >
+                  Create Another Account
+                </Button>
+
+                <Button
+                  type="button"
+                  onClick={() => {
+                    resetForm();
+                    setMode("resend");
+                  }}
+                >
+                  Resend an Invitation
+                </Button>
+              </div>
+            )}
+
+            {mode === "create" && !invitation && (
+              <p className="text-sm text-muted">
+                Need to resend an invitation?{" "}
+                <button
+                  type="button"
+                  className="text-blue-600 underline cursor-pointer"
+                  onClick={() => setMode("resend")}
+                >
+                  Resend Invitation
+                </button>
+              </p>
+            )}
           </form>
         </section>
 
