@@ -7,9 +7,9 @@ import type { WorkRequest } from "@/src/types/work-request";
 import { getUserContact } from "@/src/lib/data/get-user-contact";
 import { Role } from "@/src/types/role";
 import { UserContact } from "@/src/types/user-contact";
+import { getClientsDeveloperId } from "@/src/lib/data/get-clients-developer-id";
 
 export default async function Page() {
-
   let clientId: string;
   try {
     const result = await requireClientId();
@@ -50,17 +50,13 @@ export default async function Page() {
 
   let developerName: string | undefined = undefined;
 
-  if (workRequests.length !== 0) {
-    try {
-      const result = await getUserContact(workRequests[0]?.developerId, Role.Developer);
-      if (result.ok) {
-        const developerContact = result.data;
-        developerName = developerContact.name;
-      } else {
-        console.error("Failed to get developer contact:", result.error);
-      }
-    } catch (error) {
-      console.error("Failed to get developer contact:", error);
+  const developerResult = await getClientsDeveloperId(clientId);
+  if (developerResult.ok && developerResult.data) {
+    const result = await getUserContact(developerResult.data, Role.Developer);
+    if (result.ok) {
+      developerName = result.data.name;
+    } else {
+      console.error("Failed to get developer contact:", result.error);
     }
   }
 
@@ -71,18 +67,20 @@ export default async function Page() {
 
       <WorkRequestButton />
 
-      {workRequests.length === 0 ? (
-        <EmptyState
-          title="No requests yet"
-          message="Requests you submit will appear here."
-        />
-      ) : (
-        <div className="mt-10 w-full max-w-4xl">
-          <div className="flex justify-between">
-            <h1 className="text-2xl font-bold mb-4">Your Work Requests</h1>
-            <p className="text-lg">Developer: <span className="font-bold">{developerName}</span></p>
-          </div>
-          {workRequests.map((request) => (
+      <div className="mt-10 w-full max-w-4xl">
+        <div className="flex justify-between">
+          <h1 className="text-2xl font-bold mb-4">Your Work Requests</h1>
+          <p className="text-lg">
+            Developer: <span className="font-bold">{developerName}</span>
+          </p>
+        </div>
+        {workRequests.length === 0 ? (
+          <EmptyState
+            title="No requests yet"
+            message="Requests you submit will appear here."
+          />
+        ) : (
+          workRequests.map((request) => (
             <div
               key={request.id}
               className="bg-background border-foreground border-2 p-4 rounded-lg mb-4 text-foreground flex justify-between items-start text-left"
@@ -91,8 +89,7 @@ export default async function Page() {
                 <h2 className="text-xl font-bold">{request.title}</h2>
                 <p className="mt-2 text-primary">{request.description}</p>
                 <p className="mt-2">
-                  Status:{" "}
-                  <span className="text-success">{request.status}</span>
+                  Status: <span className="text-success">{request.status}</span>
                 </p>
               </div>
               <div>
@@ -106,9 +103,9 @@ export default async function Page() {
                 </p>
               </div>
             </div>
-          ))}
-        </div>
-      )}
+          ))
+        )}
+      </div>
     </div>
   );
 }
