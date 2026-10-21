@@ -3,7 +3,9 @@ export enum WorkRequestStatus {
   AwaitingApproval = "awaiting_approval",
   Declined = "declined",
   ChangeRequested = "change_requested",
-  Approved = "approved"
+  Approved = "approved",
+  InProgress = "in_progress",
+  Completed = "completed"
 }
 
 export type WorkRequest = {
