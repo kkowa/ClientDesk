@@ -100,16 +100,19 @@ export async function createClientInvitation(
         role: Role.Client,
       });
 
-      await adminDb.collection("clients").doc(userRecord.uid).set({
-        authUserId: userRecord.uid,
-        developerId,
-        name,
-        email,
-        status: "invited",
-        registrationTokenHash: tokenHash,
-        registrationExpiresAt: expiresAt,
-        createdAt: new Date(),
-      });
+      await adminDb
+        .collection("clients")
+        .doc(userRecord.uid)
+        .set({
+          authUserId: userRecord.uid,
+          developerId: developerSnapshot.docs[0].id,
+          name,
+          email,
+          status: "invited",
+          registrationTokenHash: hashToken(token),
+          registrationExpiresAt: expiresAt,
+          createdAt: new Date(),
+        });
     } catch {
       try {
         await adminAuth.deleteUser(userRecord.uid);
