@@ -51,7 +51,11 @@ export default async function Page() {
   let developerName: string | undefined = undefined;
   try {
     const developerResult = await getClientsDeveloperId(clientId);
-    if (developerResult.ok && developerResult.data) {
+    if (!developerResult.ok) {
+      console.error("Failed to get developer ID:", developerResult.error);
+    } else if (!developerResult.data) {
+      console.error("No developer is assigned to this client");
+    } else {
       const result = await getUserContact(developerResult.data, Role.Developer);
       if (result.ok) {
         developerName = result.data.name;
