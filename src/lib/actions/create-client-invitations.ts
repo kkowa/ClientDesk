@@ -63,7 +63,10 @@ export async function createClientInvitation(
   try {
     let developerName: string;
     try {
-      const developerContact = await getUserContact(developerId, Role.Developer);
+      const developerContact = await getUserContact(
+        developerId,
+        Role.Developer,
+      );
       if (!developerContact.ok) {
         return {
           ok: false,
@@ -105,11 +108,11 @@ export async function createClientInvitation(
         .doc(userRecord.uid)
         .set({
           authUserId: userRecord.uid,
-          developerId: developerSnapshot.docs[0].id,
+          developerId,
           name,
           email,
           status: "invited",
-          registrationTokenHash: hashToken(token),
+          registrationTokenHash: hashInvitationToken(token),
           registrationExpiresAt: expiresAt,
           createdAt: new Date(),
         });
