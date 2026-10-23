@@ -90,7 +90,7 @@ export async function createClientInvitation(
       };
     }
 
-    const { token, tokenHash, expiresAt } = createInvitationCredentials();
+    const { token, expiresAt } = createInvitationCredentials();
     const temporaryPassword = randomBytes(32).toString("base64url");
     const userRecord = await adminAuth.createUser({
       email,
