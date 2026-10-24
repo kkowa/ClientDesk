@@ -7,9 +7,9 @@ import type { WorkRequest } from "@/src/types/work-request";
 import { getUserContact } from "@/src/lib/data/get-user-contact";
 import { Role } from "@/src/types/role";
 import { UserContact } from "@/src/types/user-contact";
+import WorkRequestAccordion from "@/src/app/client/components/work-request-accordion";
 
 export default async function Page() {
-
   let clientId: string;
   try {
     const result = await requireClientId();
@@ -52,7 +52,10 @@ export default async function Page() {
 
   if (workRequests.length !== 0) {
     try {
-      const result = await getUserContact(workRequests[0]?.developerId, Role.Developer);
+      const result = await getUserContact(
+        workRequests[0]?.developerId,
+        Role.Developer,
+      );
       if (result.ok) {
         const developerContact = result.data;
         developerName = developerContact.name;
@@ -80,32 +83,21 @@ export default async function Page() {
         <div className="mt-10 w-full max-w-4xl">
           <div className="flex justify-between">
             <h1 className="text-2xl font-bold mb-4">Your Work Requests</h1>
-            <p className="text-lg">Developer: <span className="font-bold">{developerName}</span></p>
+            <p className="text-lg">
+              Developer: <span className="font-bold">{developerName}</span>
+            </p>
           </div>
           {workRequests.map((request) => (
-            <div
+            <WorkRequestAccordion
               key={request.id}
-              className="bg-background border-foreground border-2 p-4 rounded-lg mb-4 text-foreground flex justify-between items-start text-left"
-            >
-              <div className="flex flex-col">
-                <h2 className="text-xl font-bold">{request.title}</h2>
-                <p className="mt-2 text-primary">{request.description}</p>
-                <p className="mt-2">
-                  Status:{" "}
-                  <span className="text-success">{request.status}</span>
-                </p>
-              </div>
-              <div>
-                <p>
-                  Submitted at:{" "}
-                  {request.submittedAt.toLocaleDateString("en-us", {
-                    year: "numeric",
-                    month: "short",
-                    day: "numeric",
-                  })}
-                </p>
-              </div>
-            </div>
+              request={{
+                id: request.id,
+                title: request.title,
+                description: request.description,
+                status: request.status,
+                submittedAt: request.submittedAt.toISOString(),
+              }}
+            />
           ))}
         </div>
       )}
