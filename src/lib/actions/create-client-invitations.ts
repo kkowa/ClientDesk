@@ -110,10 +110,10 @@ export async function createClientInvitation(formData: FormData): Promise<
           registrationExpiresAt: expiresAt,
           createdAt: new Date(),
         });
-    } catch (error) {
+    } catch {
       try {
         await adminAuth.deleteUser(userRecord.uid);
-      } catch (cleanupError) {
+      } catch {
         await adminDb.collection("failedInvitations").doc(userRecord.uid).set({
           email,
           developerId: developerSnapshot.docs[0].id,
@@ -225,7 +225,7 @@ export async function completeClientRegistration(
     });
 
     return { ok: true, data: "Your account is ready. You can now sign in." };
-  } catch (error) {
+  } catch {
     await clientRef.update({
       status: "activation_failed",
       activationFailedAt: new Date(),

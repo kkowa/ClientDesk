@@ -27,7 +27,7 @@ export function ClientRegistrationForm({
     event.preventDefault();
     setError(null);
     setLoading(true);
-    
+
     try {
       const result = await completeClientRegistration(
         uid,
@@ -35,20 +35,20 @@ export function ClientRegistrationForm({
         new FormData(event.currentTarget),
       );
 
-     if (!result.ok) {
+      if (!result.ok) {
         setError(result.error);
         setSuccess(false);
       } else {
         setSuccess(true);
         setError(null);
       }
-    } catch (error) {
+    } catch {
       setError("An unexpected error occurred. Please try again.");
       setSuccess(false);
     } finally {
       setLoading(false);
     }
-  };
+  }
 
   return (
     <main className="flex min-h-dvh items-center justify-center px-6 py-10">
