@@ -3,8 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { Card } from "@/src/components/ui/card";
 import { requireDeveloperId } from "@/src/lib/access-checks/require-developer-id";
 import { getClientForDeveloper } from "@/src/lib/data/get-client-for-developer";
-// TODO: switch to getClientRequestsForDeveloper once Kim renames the export in this file
-import { getCurrentRequestsForDeveloper as getClientRequestsForDeveloper } from "@/src/lib/data/get-client-requests-for-developer";
+import { getClientRequestsForDeveloper as getClientRequestsForDeveloper } from "@/src/lib/data/get-client-requests-for-developer";
 import { RequestCard } from "@/src/components/features/request-card";
 import { EmptyState } from "@/src/components/ui/empty-state";
 import { ErrorMessage } from "@/src/components/ui/error-message";

@@ -4,7 +4,7 @@ import { adminDb } from "@/src/lib/firebase/admin";
 import { WorkRequest } from "@/src/types/work-request";
 import { ActionResult } from "@/src/types/action-result";
 
-export async function getPastsRequestsForDeveloper(developerId: string): Promise<ActionResult<(WorkRequest & { id: string })[]>> {
+export async function getPastRequestsForDeveloper(developerId: string): Promise<ActionResult<(WorkRequest & { id: string })[]>> {
   try {
     const requestsSnapshot = await adminDb
       .collection("workRequests")

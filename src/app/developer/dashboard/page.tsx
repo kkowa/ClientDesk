@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { getServerUser } from "@/src/lib/auth/auth-server";
 import { requireDeveloperId } from "@/src/lib/access-checks/require-developer-id";
 import { getCurrentRequestsForDeveloper } from "@/src/lib/data/get-current-developer-work-requests";
-import { getPastsRequestsForDeveloper } from "@/src/lib/data/get-past-developer-work-requests";
+import { getPastRequestsForDeveloper } from "@/src/lib/data/get-past-developer-work-requests";
 import { getClientsForDeveloper } from "@/src/lib/data/get-clients-for-developer";
 import { RequestCard } from "@/src/components/features/request-card";
 import { EmptyState } from "@/src/components/ui/empty-state";
@@ -30,7 +30,7 @@ export default async function Page() {
 
   const [currentResult, pastResult, clients] = await Promise.all([
     getCurrentRequestsForDeveloper(developerId),
-    getPastsRequestsForDeveloper(developerId),
+    getPastRequestsForDeveloper(developerId),
     getClientsForDeveloper(developerId),
   ]);
 
