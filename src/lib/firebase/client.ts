@@ -1,5 +1,5 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
+import { getAuth, connectAuthEmulator } from "firebase/auth";
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -11,5 +11,13 @@ const firebaseConfig = {
 };
 
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
-export const auth = getAuth(app);
+const auth = getAuth(app);
 export default app;
+
+if (process.env.NEXT_PUBLIC_USE_FIREBASE_EMULATOR === "true") {
+  const host = process.env.NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST || "127.0.0.1:9099";
+  connectAuthEmulator(auth, `http://${host}`, { disableWarnings: true });
+  console.log("🚀 Connected to Firebase Auth Emulator");
+}
+
+export { auth };
