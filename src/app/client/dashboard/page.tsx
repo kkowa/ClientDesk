@@ -50,15 +50,22 @@ export default async function Page() {
   }
 
   let developerName: string | undefined = undefined;
-
-  const developerResult = await getClientsDeveloperId(clientId);
-  if (developerResult.ok && developerResult.data) {
-    const result = await getUserContact(developerResult.data, Role.Developer);
-    if (result.ok) {
-      developerName = result.data.name;
+  try {
+    const developerResult = await getClientsDeveloperId(clientId);
+    if (!developerResult.ok) {
+      console.error("Failed to get developer ID:", developerResult.error);
+    } else if (!developerResult.data) {
+      console.error("No developer is assigned to this client");
     } else {
-      console.error("Failed to get developer contact:", result.error);
+      const result = await getUserContact(developerResult.data, Role.Developer);
+      if (result.ok) {
+        developerName = result.data.name;
+      } else {
+        console.error("Failed to get developer information:", result.error);
+      }
     }
+  } catch (error) {
+    console.error("Failed to get developer contact:", error);
   }
 
   return (
