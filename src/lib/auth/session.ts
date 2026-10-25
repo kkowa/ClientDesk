@@ -43,29 +43,45 @@ export async function createSession(idToken: string): Promise<ActionResult<{ sta
 }
 
 export async function deleteSession(): Promise<ActionResult<{ status: string }>> {
+
+  let error;
   let user;
+
+  // Attempt to get the server user, capturing any errors in the `error` variable
+  // instead of returning immediately so that we can still attempt to delete the
+  // session cookie, which must be done _after_ attempting to get the server user.
   try {
     user = await getServerUser();
     if (!user) {
-      return { ok: false, error: 'No user session found' };
+      error = 'No user session found';
     }
   } catch {
-    return { ok: false, error: 'Failed to get server user' };
-  }
-
-  // Firebase stores the revocation time in whole seconds, so a session
-  // created in the same second as the logout stays valid.
-  try {
-    await adminAuth.revokeRefreshTokens(user.uid);
-  } catch {
-    return { ok: false, error: 'Failed to revoke session' };
+    error = 'Failed to get server user';
   }
 
   try {
     const cookieStore = await cookies();
     cookieStore.delete('session');
-  } catch {
-    return { ok: false, error: 'Failed to delete session cookie' };
+  } catch (error) {
+    console.error('Failed to delete session cookie', error);
+    return { ok: false, error: (error as Error).message };
+  }
+
+  if (user) {
+    try {
+      // Firebase stores the revocation time in whole seconds, so a session
+      // created in the same second as the logout stays valid.
+      await adminAuth.revokeRefreshTokens(user.uid);
+    } catch (error) {
+      console.error('Failed to revoke session for user: ', user.uid, error);
+      // Ideally, we would handle this error more gracefully, perhaps by retrying
+      // the operation in a task queue with exponentially increasing wait times.
+      // We are not returning error state here because it would ultimately
+      // tell the user to retry logout, but they have already logged out and
+      // will keep getting the "retry logout" message.
+    }
+  } else {
+    return { ok: false, error: error ?? 'No user session found' };
   }
 
   return { ok: true, data: { status: 'success' } };

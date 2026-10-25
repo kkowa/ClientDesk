@@ -3,10 +3,7 @@ import { ActionResult } from "@/src/types/action-result";
 import { Role } from "@/src/types/role";
 import { UserContact } from "@/src/types/user-contact";
 
-export async function getUserContact(
-  userId: string,
-  role: Role,
-): Promise<ActionResult<UserContact>> {
+export async function getUserContact(userId: string, role: Role): Promise<ActionResult<UserContact>> {
   let docRef;
   switch (role) {
     case Role.Developer:

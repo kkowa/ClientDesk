@@ -28,6 +28,9 @@ export function DeveloperNavbar() {
           <Link href="/developer/dashboard" className="hover:text-primary">
             Dashboard
           </Link>
+          <Link href="/developer/clients" className="hover:text-primary">
+            Clients
+          </Link>
           <Link
             href="/developer/create-client-account"
             className="hover:text-primary"
