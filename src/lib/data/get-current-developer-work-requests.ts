@@ -1,3 +1,5 @@
+import "server-only";
+
 import { adminDb } from "@/src/lib/firebase/admin";
 import { WorkRequest } from "@/src/types/work-request";
 import { ActionResult } from "@/src/types/action-result";

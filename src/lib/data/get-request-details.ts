@@ -1,3 +1,5 @@
+import "server-only";
+
 import { adminDb } from "@/src/lib/firebase/admin";
 import { getServerUser } from "@/src/lib/auth/auth-server";
 import { requireClientId } from "@/src/lib/access-checks/require-client-id";
