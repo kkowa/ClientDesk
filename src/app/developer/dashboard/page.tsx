@@ -3,13 +3,12 @@ import { getServerUser } from "@/src/lib/auth/auth-server";
 import { Role } from "@/src/types/role";
 
 export default async function Page() {
-
   let serverUser;
   try {
     serverUser = await getServerUser();
   } catch (error) {
     console.error("Failed to get server user:", error);
-    redirect('/auth/login');
+    redirect("/auth/login");
   }
 
   // kick to login if not authenticated
