@@ -71,6 +71,7 @@ interface RequestRowProps {
 }
 
 // a sideways-scrolling row of request cards (the dashboard "carousel")
+// p-1 on the row leaves room for the card's hover/focus ring, which overflow-x-auto would otherwise clip
 function RequestRow({
   title,
   result,
@@ -92,7 +93,7 @@ function RequestRow({
       ) : requests.length === 0 ? (
         <EmptyState title={emptyTitle} message={emptyMessage} />
       ) : (
-        <ul className="flex snap-x snap-mandatory gap-4 overflow-x-auto pb-3">
+        <ul className="flex snap-x snap-mandatory gap-4 overflow-x-auto p-1 pb-3">
           {requests.map((request) => (
             <li key={request.id} className="w-64 shrink-0 snap-start">
               <RequestCard
