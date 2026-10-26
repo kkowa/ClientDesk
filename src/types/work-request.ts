@@ -7,6 +7,21 @@ export enum WorkRequestStatus {
   InProgress = "in_progress",
   Completed = "completed"
 }
+export const statusGroups = {
+  current: [
+    WorkRequestStatus.Open,
+    WorkRequestStatus.AwaitingApproval,
+    WorkRequestStatus.ChangeRequested,
+    WorkRequestStatus.Approved,
+    WorkRequestStatus.InProgress,
+  ],
+  past: [
+    WorkRequestStatus.Completed,
+    WorkRequestStatus.Declined,
+  ],
+} as const;
+
+export type RequestGroup = keyof typeof statusGroups;
 
 export type WorkRequest = {
   developerId: string;
