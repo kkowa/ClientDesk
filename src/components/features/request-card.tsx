@@ -13,7 +13,8 @@ export function RequestCard({ request, clientName }: RequestCardProps) {
   return (
     <Link
       href={`/developer/requests/${request.id}`}
-      className="block h-full rounded-xl outline-none hover:ring-2 hover:ring-primary focus-visible:ring-2 focus-visible:ring-primary"
+      // grid stretches the Card to the link's full height, so cards in a row match the tallest one
+      className="grid h-full rounded-xl outline-none hover:ring-2 hover:ring-primary focus-visible:ring-2 focus-visible:ring-primary"
     >
       <Card>
         <div className="flex flex-col gap-1">
