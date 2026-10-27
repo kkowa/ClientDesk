@@ -13,7 +13,7 @@ export function RequestCard({ request, clientName }: RequestCardProps) {
   return (
     <Link
       href={`/developer/requests/${request.id}`}
-      className="block h-full rounded-xl hover:ring-2 hover:ring-primary"
+      className="block h-full rounded-xl outline-none hover:ring-2 hover:ring-primary focus-visible:ring-2 focus-visible:ring-primary"
     >
       <Card>
         <div className="flex flex-col gap-1">
