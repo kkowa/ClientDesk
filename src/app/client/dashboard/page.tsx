@@ -8,6 +8,7 @@ import { getUserContact } from "@/src/lib/data/get-user-contact";
 import { Role } from "@/src/types/role";
 import { UserContact } from "@/src/types/user-contact";
 import WorkRequestAccordion from "@/src/app/client/components/work-request-accordion";
+import { getClientsDeveloperId } from "@/src/lib/data/get-clients-developer-id";
 
 export default async function Page() {
   let clientId: string;
@@ -49,22 +50,22 @@ export default async function Page() {
   }
 
   let developerName: string | undefined = undefined;
-
-  if (workRequests.length !== 0) {
-    try {
-      const result = await getUserContact(
-        workRequests[0]?.developerId,
-        Role.Developer,
-      );
+  try {
+    const developerResult = await getClientsDeveloperId(clientId);
+    if (!developerResult.ok) {
+      console.error("Failed to get developer ID:", developerResult.error);
+    } else if (!developerResult.data) {
+      console.error("No developer is assigned to this client");
+    } else {
+      const result = await getUserContact(developerResult.data, Role.Developer);
       if (result.ok) {
-        const developerContact = result.data;
-        developerName = developerContact.name;
+        developerName = result.data.name;
       } else {
-        console.error("Failed to get developer contact:", result.error);
+        console.error("Failed to get developer information:", result.error);
       }
-    } catch (error) {
-      console.error("Failed to get developer contact:", error);
     }
+  } catch (error) {
+    console.error("Failed to get developer contact:", error);
   }
 
   return (

@@ -46,6 +46,8 @@ export const config = {
   matcher: [
     "/developer/dashboard/:path*",
     "/developer/create-client-account/:path*",
+    "/developer/clients/:path*",
+    "/developer/requests/:path*",
     "/client/dashboard/:path*",
   ],
 };

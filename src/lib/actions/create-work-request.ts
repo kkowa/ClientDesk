@@ -45,15 +45,18 @@ export async function createWorkRequest(
     };
   }
 
-  const title = (formData.get("title") as string).trim();
-  const description = (formData.get("description") as string).trim();
-
-  if (WorkRequestSchema.safeParse({ title, description }).success === false) {
+  const result = WorkRequestSchema.safeParse({
+    title: formData.get("title"),
+    description: formData.get("description"),
+  });
+  if (result.success === false) {
     return {
       ok: false,
       error: "Title and description are required",
     };
   }
+
+  const { title, description } = result.data;
 
   try {
     const now = new Date();
