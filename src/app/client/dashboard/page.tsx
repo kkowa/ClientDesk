@@ -8,6 +8,7 @@ import { getUserContact } from "@/src/lib/data/get-user-contact";
 import { Role } from "@/src/types/role";
 import { UserContact } from "@/src/types/user-contact";
 import { getClientsDeveloperId } from "@/src/lib/data/get-clients-developer-id";
+import { requestStatusLabel } from "@/src/lib/data/request-status-label";
 
 export default async function Page() {
   let clientId: string;
@@ -96,7 +97,7 @@ export default async function Page() {
                 <h2 className="text-xl font-bold">{request.title}</h2>
                 <p className="mt-2 text-primary">{request.description}</p>
                 <p className="mt-2">
-                  Status: <span className="text-success">{request.status}</span>
+                  Status: <span className="text-success">{requestStatusLabel(request.status)}</span>
                 </p>
               </div>
               <div>
