@@ -1,14 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import type { WorkRequest } from "@/src/types/work-request";
+import Link from "next/link";
+import type { WorkRequestStatus } from "@/src/types/work-request";
+import { requestStatusLabel } from "@/src/lib/data/request-status-label";
 
-type WorkRequestAccordionProps = {
+interface WorkRequestAccordionProps {
   request: {
     id: string;
     title: string;
     description: string;
-    status: WorkRequest["status"];
+    status: WorkRequestStatus;
     submittedAt: string;
   };
 };
@@ -22,7 +24,9 @@ export default function WorkRequestAccordion({
     <div className="bg-background border-foreground border-2 p-4 rounded-lg mb-4 text-foreground flex justify-between items-start text-left">
       <div className="flex flex-col w-full">
         <div className="flex justify-between items-center">
-          <h2 className="text-xl font-bold">{request.title}</h2>
+          <Link href={`/client/requests/${request.id}`} className="hover:underline">
+            <h2 className="text-xl font-bold">{request.title}</h2>
+          </Link>
           <button
             onClick={() => setIsOpen(!isOpen)}
             className="flex justify-between items-center"
@@ -45,7 +49,7 @@ export default function WorkRequestAccordion({
           <p className="mt-2 text-primary">{request.description}</p>
 
           <p className="mt-2">
-            Status: <span className="text-success">{request.status}</span>
+            Status: <span className="text-success">{requestStatusLabel(request.status)}</span>
           </p>
 
           <div>
