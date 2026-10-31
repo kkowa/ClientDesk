@@ -50,5 +50,9 @@ export default async function Page({
     notFound();
   }
 
+  if (request.clientId !== clientId) {
+    notFound();
+  }
+
   return <RequestDisplay role={Role.Client} request={request} />;
 }

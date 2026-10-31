@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { adminDb } from "@/src/lib/firebase/admin";
 import { getServerUser } from "@/src/lib/auth/auth-server";
 import { requireClientId } from "@/src/lib/access-checks/require-client-id";
@@ -51,13 +52,19 @@ export async function addComment(
     if (user.role === Role.Client) {
       const clientResult = await requireClientId(user, request.clientId);
       if (!clientResult.ok || clientResult.data !== request.clientId) {
-        return { ok: false, error: "You don't have access to this work request" };
+        return {
+          ok: false,
+          error: "You don't have access to this work request",
+        };
       }
       authorId = clientResult.data;
     } else if (user.role === Role.Developer) {
       const developerResult = await requireDeveloperId(user);
       if (!developerResult.ok || developerResult.data !== request.developerId) {
-        return { ok: false, error: "You don't have access to this work request" };
+        return {
+          ok: false,
+          error: "You don't have access to this work request",
+        };
       }
       authorId = developerResult.data;
     } else {
@@ -71,6 +78,9 @@ export async function addComment(
       text: parsedComment.data.text,
       createdAt: new Date(),
     });
+
+    revalidatePath(`/client/requests/${requestSnapshot.id}`);
+    revalidatePath(`/developer/requests/${requestSnapshot.id}`);
 
     return { ok: true, data: commentRef.id };
   } catch (error) {

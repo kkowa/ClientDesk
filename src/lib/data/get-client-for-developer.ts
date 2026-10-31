@@ -14,19 +14,11 @@ export async function getClientForDeveloper(
     throw new Error("Client ID is required");
   }
 
-  const snapshot = await adminDb
-    .collection("clients")
-    .where("developerId", "==", developerId)
-    .where("authUserId", "==", clientId)
-    .limit(1)
-    .get();
-
-  if (snapshot.empty) {
-    return null; // or throw an error if you prefer
+  const snapshot = await adminDb.collection("clients").doc(clientId).get();
+  const data = snapshot.data();
+  if (!snapshot.exists || !data || data.developerId !== developerId) {
+    return null;
   }
-
-  const doc = snapshot.docs[0];
-  const data = doc.data();
 
   return {
     authUserId: data.authUserId,

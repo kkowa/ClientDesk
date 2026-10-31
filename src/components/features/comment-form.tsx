@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { addComment } from "@/src/lib/actions/add-comment";
 import { Button } from "@/src/components/ui/button";
 import { ErrorMessage } from "@/src/components/ui/error-message";
@@ -12,8 +11,6 @@ interface CommentFormProps {
 }
 
 export function CommentForm({ workRequestId }: CommentFormProps) {
-  const router = useRouter();
-
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -29,8 +26,6 @@ export function CommentForm({ workRequestId }: CommentFormProps) {
         return;
       }
       form.reset();
-      // re-renders the server component above so the new comment appears
-      router.refresh();
     } catch {
       setError("We couldn't add your comment. Please try again");
     } finally {
