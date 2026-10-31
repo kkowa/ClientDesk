@@ -7,3 +7,9 @@ export type Comment = {
   text: string;
   createdAt: Date;
 }
+
+// the author's name and the document ID aren't stored on the comment itself
+export type CommentWithAuthor = Comment & {
+  id: string;
+  authorName: string;
+};

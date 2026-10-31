@@ -6,11 +6,12 @@ import { requireClientId } from "@/src/lib/access-checks/require-client-id";
 import { requireDeveloperId } from "@/src/lib/access-checks/require-developer-id";
 import { Role } from "@/src/types/role";
 import type { ActionResult } from "@/src/types/action-result";
-import type { Comment } from "@/src/types/comment";
+import { getUserContact } from "@/src/lib/data/get-user-contact";
+import type { Comment, CommentWithAuthor } from "@/src/types/comment";
 
 export async function getCommentsForRequest(
   workRequestId: string,
-): Promise<ActionResult<Comment[]>> {
+): Promise<ActionResult<CommentWithAuthor[]>> {
   if (!workRequestId.trim() || workRequestId.includes("/")) {
     return { ok: false, error: "A valid work request is required" };
   }
@@ -59,19 +60,34 @@ export async function getCommentsForRequest(
       };
     }
 
+    // sorted below rather than with orderBy, which would need a composite Firestore index
     const commentsSnapshot = await adminDb
       .collection("comments")
       .where("workRequestId", "==", requestSnapshot.id)
-      .orderBy("createdAt", "asc")
       .get();
 
-    const comments = commentsSnapshot.docs.map((commentDoc) => {
-      const data = commentDoc.data();
-      return {
+    const docs = commentsSnapshot.docs.map((commentDoc) => ({
+      id: commentDoc.id,
+      data: commentDoc.data(),
+    }));
+
+    // a request only has two authors, so look each one up once
+    const authorNames = new Map<string, string>();
+    for (const { data } of docs) {
+      if (!authorNames.has(data.authorId)) {
+        const contact = await getUserContact(data.authorId, data.authorRole);
+        authorNames.set(data.authorId, contact.ok ? contact.data.name : "Unknown");
+      }
+    }
+
+    const comments = docs
+      .map(({ id, data }) => ({
         ...(data as Omit<Comment, "createdAt">),
-        createdAt: data.createdAt.toDate(),
-      };
-    });
+        id,
+        authorName: authorNames.get(data.authorId) ?? "Unknown",
+        createdAt: data.createdAt.toDate() as Date,
+      }))
+      .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
 
     return { ok: true, data: comments };
   } catch (error) {

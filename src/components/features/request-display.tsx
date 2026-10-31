@@ -1,13 +1,15 @@
 import Link from "next/link";
 import { Role } from "@/src/types/role";
 import { Client } from "@/src/types/client";
+import type { WorkRequest } from "@/src/types/work-request";
 import { Card } from "@/src/components/ui/card";
 import { requestStatusLabel } from "@/src/lib/data/request-status-label";
+import { RequestComments } from "@/src/components/features/request-comments";
 
 
 interface RequestDisplayProps {
   role: Role;
-  request: any;
+  request: WorkRequest & { id: string };
   client?: Client | null;
 }
 
@@ -64,6 +66,7 @@ export default function RequestDisplay({ role, request, client }: RequestDisplay
           </p>
         </Card>
       </section>
+      <RequestComments workRequestId={request.id} />
     </div>
   );
 }
