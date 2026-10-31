@@ -7,8 +7,8 @@ import type { WorkRequest } from "@/src/types/work-request";
 import { getUserContact } from "@/src/lib/data/get-user-contact";
 import { Role } from "@/src/types/role";
 import { UserContact } from "@/src/types/user-contact";
+import WorkRequestAccordion from "@/src/app/client/components/work-request-accordion";
 import { getClientsDeveloperId } from "@/src/lib/data/get-clients-developer-id";
-import { requestStatusLabel } from "@/src/lib/data/request-status-label";
 
 export default async function Page() {
   let clientId: string;
@@ -75,45 +75,33 @@ export default async function Page() {
 
       <WorkRequestButton />
 
-      <div className="mt-10 w-full max-w-4xl">
-        <div className="flex justify-between">
-          <h1 className="text-2xl font-bold mb-4">Your Work Requests</h1>
-          <p className="text-lg">
-            Developer: <span className="font-bold">{developerName}</span>
-          </p>
-        </div>
-        {workRequests.length === 0 ? (
-          <EmptyState
-            title="No requests yet"
-            message="Requests you submit will appear here."
-          />
-        ) : (
-          workRequests.map((request) => (
-            <div
+      {workRequests.length === 0 ? (
+        <EmptyState
+          title="No requests yet"
+          message="Requests you submit will appear here."
+        />
+      ) : (
+        <div className="mt-10 w-full max-w-4xl">
+          <div className="flex justify-between">
+            <h1 className="text-2xl font-bold mb-4">Your Work Requests</h1>
+            <p className="text-lg">
+              Developer: <span className="font-bold">{developerName}</span>
+            </p>
+          </div>
+          {workRequests.map((request) => (
+            <WorkRequestAccordion
               key={request.id}
-              className="bg-background border-foreground border-2 p-4 rounded-lg mb-4 text-foreground flex justify-between items-start text-left"
-            >
-              <div className="flex flex-col">
-                <h2 className="text-xl font-bold">{request.title}</h2>
-                <p className="mt-2 text-primary">{request.description}</p>
-                <p className="mt-2">
-                  Status: <span className="text-success">{requestStatusLabel(request.status)}</span>
-                </p>
-              </div>
-              <div>
-                <p>
-                  Submitted at:{" "}
-                  {request.submittedAt.toLocaleDateString("en-us", {
-                    year: "numeric",
-                    month: "short",
-                    day: "numeric",
-                  })}
-                </p>
-              </div>
-            </div>
-          ))
-        )}
-      </div>
+              request={{
+                id: request.id,
+                title: request.title,
+                description: request.description,
+                status: request.status,
+                submittedAt: request.submittedAt.toISOString(),
+              }}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
