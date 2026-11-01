@@ -37,6 +37,19 @@ export function CommentForm({ workRequestId }: CommentFormProps) {
     <form onSubmit={handleSubmit} className="flex flex-col gap-3">
       <input type="hidden" name="workRequestId" value={workRequestId} />
       <TextArea label="Add a comment" name="text" rows={3} required />
+      <div className="flex flex-col gap-1">
+        <label htmlFor="comment-image" className="text-sm font-medium">
+          Add a picture (optional)
+        </label>
+        <input
+          id="comment-image"
+          type="file"
+          name="image"
+          accept="image/jpeg,image/png,image/webp"
+          disabled={loading}
+        />
+        <p className="text-sm text-muted">JPEG, PNG, or WebP. Maximum 5 MB.</p>
+      </div>
       <ErrorMessage message={error} />
       <Button type="submit" disabled={loading}>
         {loading ? "Posting..." : "Post Comment"}

@@ -3,6 +3,7 @@ import { CommentForm } from "@/src/components/features/comment-form";
 import { Card } from "@/src/components/ui/card";
 import { EmptyState } from "@/src/components/ui/empty-state";
 import { ErrorMessage } from "@/src/components/ui/error-message";
+import { CldImage } from "next-cloudinary";
 
 interface RequestCommentsProps {
   workRequestId: string;
@@ -34,6 +35,28 @@ export async function RequestComments({ workRequestId }: RequestCommentsProps) {
                     </p>
                   </div>
                   <p className="whitespace-pre-wrap wrap-break-word">{comment.text}</p>
+                  {comment.image && (
+                    <a
+                      href={comment.image.secureUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="block w-fit"
+                    >
+                      <CldImage
+                        src={comment.image.publicId}
+                        alt="Image attached to comment"
+                        width={800}
+                        height={600}
+                        sizes="(max-width: 768px) 100vw, 768px"
+                        config={{
+                          cloud: {
+                            cloudName: process.env.CLOUDINARY_CLOUD_NAME,
+                          },
+                        }}
+                        className="h-auto max-h-96 w-auto max-w-full rounded-lg"
+                      />
+                    </a>
+                  )}
                 </div>
               </Card>
             </li>

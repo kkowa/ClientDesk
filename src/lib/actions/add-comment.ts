@@ -5,6 +5,11 @@ import { adminDb } from "@/src/lib/firebase/admin";
 import { getServerUser } from "@/src/lib/auth/auth-server";
 import { requireClientId } from "@/src/lib/access-checks/require-client-id";
 import { requireDeveloperId } from "@/src/lib/access-checks/require-developer-id";
+import {
+  CommentImageUploadError,
+  deleteCommentImage,
+  uploadCommentImage,
+} from "@/src/lib/cloudinary/comment-image";
 import { CommentSchema } from "@/src/lib/validation/comment";
 import type { ActionResult } from "@/src/types/action-result";
 import { Role } from "@/src/types/role";
@@ -27,6 +32,13 @@ export async function addComment(
   if (!parsedComment.success) {
     return { ok: false, error: "Comment text is required" };
   }
+
+  const imageValue = formData.get("image");
+  if (imageValue !== null && !(imageValue instanceof File)) {
+    return { ok: false, error: "Choose a valid image" };
+  }
+  const imageFile =
+    imageValue instanceof File && imageValue.size > 0 ? imageValue : null;
 
   try {
     const user = await getServerUser();
@@ -71,13 +83,27 @@ export async function addComment(
       return { ok: false, error: "You don't have access to this work request" };
     }
 
-    const commentRef = await adminDb.collection("comments").add({
-      workRequestId: requestSnapshot.id,
-      authorId,
-      authorRole: user.role,
-      text: parsedComment.data.text,
-      createdAt: new Date(),
-    });
+    const image = imageFile ? await uploadCommentImage(imageFile) : undefined;
+    let commentRef;
+    try {
+      commentRef = await adminDb.collection("comments").add({
+        workRequestId: requestSnapshot.id,
+        authorId,
+        authorRole: user.role,
+        text: parsedComment.data.text,
+        ...(image ? { image } : {}),
+        createdAt: new Date(),
+      });
+    } catch (error) {
+      if (image) {
+        try {
+          await deleteCommentImage(image.publicId);
+        } catch (cleanupError) {
+          console.error("Failed to clean up uploaded comment image:", cleanupError);
+        }
+      }
+      throw error;
+    }
 
     revalidatePath(`/client/requests/${requestSnapshot.id}`);
     revalidatePath(`/developer/requests/${requestSnapshot.id}`);
@@ -85,6 +111,9 @@ export async function addComment(
     return { ok: true, data: commentRef.id };
   } catch (error) {
     console.error("Failed to add comment:", error);
+    if (error instanceof CommentImageUploadError) {
+      return { ok: false, error: error.message };
+    }
     return { ok: false, error: "Failed to add comment" };
   }
 }

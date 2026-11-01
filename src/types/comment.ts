@@ -1,10 +1,16 @@
 import { Role } from "./role";
 
+export type CommentImage = {
+  publicId: string;
+  secureUrl: string;
+};
+
 export type Comment = {
   workRequestId: string;
   authorId: string;
   authorRole: Role;
   text: string;
+  image?: CommentImage;
   createdAt: Date;
 }
 
