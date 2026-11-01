@@ -1,9 +1,10 @@
 import "server-only";
 
 import { createHash, randomUUID } from "node:crypto";
+import { MAX_IMAGE_SIZE_MB } from "@/src/lib/validation/comment";
 import type { CommentImage } from "@/src/types/comment";
 
-const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
+const MAX_IMAGE_SIZE = MAX_IMAGE_SIZE_MB * 1024 * 1024;
 const IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 const COMMENT_IMAGE_FOLDER = "clientdesk/comments";
 
@@ -47,7 +48,7 @@ function signParameters(
 
 async function validateImage(file: File): Promise<void> {
   if (file.size > MAX_IMAGE_SIZE) {
-    throw new CommentImageUploadError("Images must be 5 MB or smaller");
+    throw new CommentImageUploadError(`Images must be ${MAX_IMAGE_SIZE_MB} MB or smaller`);
   }
 
   if (!IMAGE_TYPES.has(file.type)) {

@@ -5,6 +5,7 @@ import { addComment } from "@/src/lib/actions/add-comment";
 import { Button } from "@/src/components/ui/button";
 import { ErrorMessage } from "@/src/components/ui/error-message";
 import { TextArea } from "@/src/components/ui/text-area";
+import { MAX_IMAGE_SIZE_MB } from "@/src/lib/validation/comment";
 
 interface CommentFormProps {
   workRequestId: string;
@@ -13,6 +14,17 @@ interface CommentFormProps {
 export function CommentForm({ workRequestId }: CommentFormProps) {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  // warn before uploading, since Next rejects oversized files before addComment can respond
+  function handleImageChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (file && file.size > MAX_IMAGE_SIZE_MB * 1024 * 1024) {
+      event.target.value = "";
+      setError(`Images must be ${MAX_IMAGE_SIZE_MB} MB or smaller`);
+      return;
+    }
+    setError(null);
+  }
 
   async function handleSubmit(event: React.SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -36,7 +48,7 @@ export function CommentForm({ workRequestId }: CommentFormProps) {
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-3">
       <input type="hidden" name="workRequestId" value={workRequestId} />
-      <TextArea label="Add a comment" name="text" rows={3} required />
+      <TextArea label="Add a comment" name="text" rows={3} />
       <div className="flex flex-col gap-1">
         <label htmlFor="comment-image" className="text-sm font-medium">
           Add a picture (optional)
@@ -47,8 +59,11 @@ export function CommentForm({ workRequestId }: CommentFormProps) {
           name="image"
           accept="image/jpeg,image/png,image/webp"
           disabled={loading}
+          onChange={handleImageChange}
         />
-        <p className="text-sm text-muted">JPEG, PNG, or WebP. Maximum 5 MB.</p>
+        <p className="text-sm text-muted">
+          JPEG, PNG, or WebP. Maximum {MAX_IMAGE_SIZE_MB} MB.
+        </p>
       </div>
       <ErrorMessage message={error} />
       <Button type="submit" disabled={loading}>

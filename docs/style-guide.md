@@ -37,7 +37,7 @@ Everything in this guide has been agreed by the team.
 | Database         | Cloud Firestore                                                |
 | Hosting          | Vercel                                                         |
 | Starting code    | Firebase + Next.js base implementation in the project repository |
-| Comment images   | Firebase Storage                                               |
+| Comment images   | Cloudinary                                                     |
 | Form/data checks | Zod                                                            |
 | Code formatting  | ESLint + Prettier (auto-format on save)                        |
 

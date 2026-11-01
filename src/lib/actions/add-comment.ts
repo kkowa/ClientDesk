@@ -30,7 +30,7 @@ export async function addComment(
     text: formData.get("text"),
   });
   if (!parsedComment.success) {
-    return { ok: false, error: "Comment text is required" };
+    return { ok: false, error: "Enter a valid comment" };
   }
 
   const imageValue = formData.get("image");
@@ -39,6 +39,10 @@ export async function addComment(
   }
   const imageFile =
     imageValue instanceof File && imageValue.size > 0 ? imageValue : null;
+
+  if (!parsedComment.data.text && !imageFile) {
+    return { ok: false, error: "Add a comment or a picture" };
+  }
 
   try {
     const user = await getServerUser();

@@ -34,7 +34,9 @@ export async function RequestComments({ workRequestId }: RequestCommentsProps) {
                       {comment.createdAt.toLocaleString()}
                     </p>
                   </div>
-                  <p className="whitespace-pre-wrap wrap-break-word">{comment.text}</p>
+                  {comment.text && (
+                    <p className="whitespace-pre-wrap wrap-break-word">{comment.text}</p>
+                  )}
                   {comment.image && (
                     <a
                       href={comment.image.secureUrl}
