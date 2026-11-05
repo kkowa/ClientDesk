@@ -3,10 +3,11 @@ import { getServerUser } from "@/src/lib/auth/auth-server";
 import { requireDeveloperId } from "@/src/lib/access-checks/require-developer-id";
 import { getRequestsForDeveloper } from "@/src/lib/data/get-developer-work-requests";
 import { getClientsForDeveloper } from "@/src/lib/data/get-clients-for-developer";
-import { RequestCard } from "@/src/components/features/request-card";
-import { EmptyState } from "@/src/components/ui/empty-state";
-import { ErrorMessage } from "@/src/components/ui/error-message";
-import type { ActionResult } from "@/src/types/action-result";
+import {
+  sortCurrentRequests,
+  sortPastRequests,
+} from "@/src/lib/data/sort-work-requests";
+import { RequestRow } from "@/src/app/developer/components/request-row";
 import type { WorkRequest } from "@/src/types/work-request";
 
 type RequestWithId = WorkRequest & { id: string };
@@ -34,9 +35,19 @@ export default async function Page() {
   ]);
 
   // requests only store the clientId, so look names up from the developer's clients
-  const clientNames = new Map(
+  const clientNames = Object.fromEntries(
     clients.map((client) => [client.authUserId, client.name]),
   );
+  const sortBySubmittedAt = (requests: RequestWithId[]) =>
+    [...requests].sort(
+      (a, b) => b.submittedAt.getTime() - a.submittedAt.getTime(),
+    );
+  const currentRequests = currentResult.ok
+    ? sortCurrentRequests(sortBySubmittedAt(currentResult.data))
+    : null;
+  const pastRequests = pastResult.ok
+    ? sortPastRequests(sortBySubmittedAt(pastResult.data))
+    : null;
 
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-8 px-4 py-8">
@@ -46,64 +57,20 @@ export default async function Page() {
       </div>
       <RequestRow
         title="Current Requests"
-        result={currentResult}
+        group="current"
+        requests={currentRequests}
         clientNames={clientNames}
         emptyTitle="No current requests"
         emptyMessage="New requests from your clients will appear here."
       />
       <RequestRow
         title="Past Requests"
-        result={pastResult}
+        group="past"
+        requests={pastRequests}
         clientNames={clientNames}
         emptyTitle="No past requests"
         emptyMessage="Completed and declined requests will appear here."
       />
     </div>
-  );
-}
-
-interface RequestRowProps {
-  title: string;
-  result: ActionResult<RequestWithId[]>;
-  clientNames: Map<string, string>;
-  emptyTitle: string;
-  emptyMessage: string;
-}
-
-// a sideways-scrolling row of request cards (the dashboard "carousel")
-// p-1 on the row leaves room for the card's hover/focus ring, which overflow-x-auto would otherwise clip
-function RequestRow({
-  title,
-  result,
-  clientNames,
-  emptyTitle,
-  emptyMessage,
-}: RequestRowProps) {
-  const requests = result.ok
-    ? [...result.data].sort(
-        (a, b) => b.submittedAt.getTime() - a.submittedAt.getTime(),
-      )
-    : [];
-
-  return (
-    <section aria-label={title} className="flex flex-col gap-3">
-      <h2 className="text-xl font-bold">{title}</h2>
-      {!result.ok ? (
-        <ErrorMessage message="We couldn't load these requests. Please refresh the page." />
-      ) : requests.length === 0 ? (
-        <EmptyState title={emptyTitle} message={emptyMessage} />
-      ) : (
-        <ul className="flex snap-x snap-mandatory gap-4 overflow-x-auto p-1 pb-3">
-          {requests.map((request) => (
-            <li key={request.id} className="w-64 shrink-0 snap-start">
-              <RequestCard
-                request={request}
-                clientName={clientNames.get(request.clientId)}
-              />
-            </li>
-          ))}
-        </ul>
-      )}
-    </section>
   );
 }
