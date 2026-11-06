@@ -25,6 +25,7 @@ export async function getRequestsForDeveloper(
         id: doc.id,
         ...(data as WorkRequest),
         submittedAt: data.submittedAt.toDate(),
+        updatedAt: data.updatedAt.toDate(),
       };
     });
 
