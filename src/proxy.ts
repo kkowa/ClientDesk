@@ -49,5 +49,6 @@ export const config = {
     "/developer/clients/:path*",
     "/developer/requests/:path*",
     "/client/dashboard/:path*",
+    "/client/requests/:path*",
   ],
 };
