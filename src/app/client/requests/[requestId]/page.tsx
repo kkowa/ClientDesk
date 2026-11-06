@@ -13,13 +13,12 @@ export default async function Page({
 }) {
   const { requestId } = await params;
 
-  let clientId;
   try {
+    // just used to check that user is a client, we don't actually need their ID
     const result = await requireClientId();
     if (!result.ok) {
       redirect("/auth/login");
     }
-    clientId = result.data;
   } catch {
     console.error("Client requests: Failed to get client ID");
     redirect("/auth/login");
