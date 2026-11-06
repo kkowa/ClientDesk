@@ -3,11 +3,12 @@ import { Role } from "@/src/types/role";
 import { Client } from "@/src/types/client";
 import { Card } from "@/src/components/ui/card";
 import { requestStatusLabel } from "@/src/lib/data/request-status-label";
+import { WorkRequest } from "@/src/types/work-request";
 
 
 interface RequestDisplayProps {
   role: Role;
-  request: any;
+  request: WorkRequest & { id: string };
   client?: Client | null;
 }
 
