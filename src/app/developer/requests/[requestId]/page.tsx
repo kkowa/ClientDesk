@@ -1,4 +1,5 @@
 import Link from "next/link";
+import ProposalFormButton from "@/src/app/developer/components/proposal-form-button";
 import { notFound, redirect } from "next/navigation";
 import { Card } from "@/src/components/ui/card";
 import { ErrorMessage } from "@/src/components/ui/error-message";
@@ -74,6 +75,12 @@ export default async function Page({
           </p>
         </Card>
       </section>
+
+      {request.status === "open" && (
+        <div className="flex items-center justify-center">
+          <ProposalFormButton requestId={requestId} />
+        </div>
+      )}
     </div>
   );
 }

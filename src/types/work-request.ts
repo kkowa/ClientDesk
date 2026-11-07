@@ -32,3 +32,23 @@ export type WorkRequest = {
   submittedAt: Date;
   updatedAt: Date;
 };
+
+export type Proposal = {
+  currentRevisionId: string;
+  acceptedRevisionId: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+export type ProposalRevision = {
+  revisionNumber: number;
+  description: string;
+  authorId: string;
+  createdAt: Date;
+};
+
+export type ChangeRequest = {
+  description: string;
+  authorId: string;
+  createdAt: Date;
+};
