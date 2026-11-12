@@ -63,7 +63,10 @@ export async function createClientInvitation(
   try {
     let developerName: string;
     try {
-      const developerContact = await getUserContact(developerId, Role.Developer);
+      const developerContact = await getUserContact(
+        developerId,
+        Role.Developer,
+      );
       if (!developerContact.ok) {
         return {
           ok: false,
@@ -87,7 +90,7 @@ export async function createClientInvitation(
       };
     }
 
-    const { token, tokenHash, expiresAt } = createInvitationCredentials();
+    const { token, expiresAt } = createInvitationCredentials();
     const temporaryPassword = randomBytes(32).toString("base64url");
     const userRecord = await adminAuth.createUser({
       email,
@@ -100,16 +103,19 @@ export async function createClientInvitation(
         role: Role.Client,
       });
 
-      await adminDb.collection("clients").doc(userRecord.uid).set({
-        authUserId: userRecord.uid,
-        developerId,
-        name,
-        email,
-        status: "invited",
-        registrationTokenHash: tokenHash,
-        registrationExpiresAt: expiresAt,
-        createdAt: new Date(),
-      });
+      await adminDb
+        .collection("clients")
+        .doc(userRecord.uid)
+        .set({
+          authUserId: userRecord.uid,
+          developerId,
+          name,
+          email,
+          status: "invited",
+          registrationTokenHash: hashInvitationToken(token),
+          registrationExpiresAt: expiresAt,
+          createdAt: new Date(),
+        });
     } catch {
       try {
         await adminAuth.deleteUser(userRecord.uid);
