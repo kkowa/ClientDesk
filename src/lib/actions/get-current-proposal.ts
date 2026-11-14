@@ -1,8 +1,16 @@
 "use server";
 import { requireDeveloperId } from "@/src/lib/access-checks/require-developer-id";
-import { adminDb } from "../firebase/admin";
+import { adminDb } from "@/src/lib/firebase/admin";
+import { ActionResult } from "@/src/types/action-result";
 
-export async function getCurrentProposal(requestId: string) {
+export async function getCurrentProposal(requestId: string): Promise<
+  ActionResult<{
+    description: string;
+    revisionNumber: number;
+    submittedAt: Date | null;
+    hasChangeRequests: boolean;
+  }>
+> {
   try {
     const developerResult = await requireDeveloperId();
     if (!developerResult.ok) {
@@ -30,8 +38,17 @@ export async function getCurrentProposal(requestId: string) {
 
     const proposalSnap = await proposalRef.get();
 
+    // return empty data, but not an error
     if (!proposalSnap.exists) {
-      return { ok: true, data: null };
+      return {
+        ok: true,
+        data: {
+          description: "",
+          revisionNumber: 0,
+          submittedAt: null,
+          hasChangeRequests: false,
+        },
+      };
     }
 
     const proposalData = proposalSnap.data();
@@ -49,8 +66,28 @@ export async function getCurrentProposal(requestId: string) {
       return { ok: false, error: "Revision not found" };
     }
     const revision = revisionSnap.data();
+    if (!revision) {
+      return { ok: false, error: "Revision not found" };
+    }
 
-    return { ok: true, data: { description: revision?.description ?? "" } };
+    const changeRequestsSnap = await proposalRef
+      .collection("revisions")
+      .doc(proposalData.currentRevisionId)
+      .collection("changeRequests")
+      .limit(1)
+      .get();
+
+    return {
+      ok: true,
+      data: {
+        description: revision.description,
+        revisionNumber: revision.revisionNumber,
+        submittedAt: revision.submittedAt
+          ? revision.submittedAt.toDate()
+          : null,
+        hasChangeRequests: !changeRequestsSnap.empty,
+      },
+    };
   } catch (error) {
     console.error("Error retrieving current proposal:", error);
     return { ok: false, error: "An unexpected error occurred" };
