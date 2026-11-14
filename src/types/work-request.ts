@@ -45,6 +45,7 @@ export type ProposalRevision = {
   description: string;
   authorId: string;
   createdAt: Date;
+  submittedAt: Date | null;
 };
 
 export type ChangeRequest = {
