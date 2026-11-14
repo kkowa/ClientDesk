@@ -4,8 +4,9 @@ import { Client } from "@/src/types/client";
 import { Card } from "@/src/components/ui/card";
 import { requestStatusLabel } from "@/src/lib/data/request-status-label";
 import { WorkRequest, WorkRequestStatus } from "@/src/types/work-request";
-import ProposalFormButton from "@/src/app/developer/components/proposal-form-button";
-
+import { RequestDeclineOrProposal } from "@/src/components/features/request-decline-or-proposal";
+import { ProposalDisplay } from "./proposal-display";
+import { DeclineDisplay } from "./decline-display";
 
 interface RequestDisplayProps {
   role: Role;
@@ -13,7 +14,11 @@ interface RequestDisplayProps {
   client?: Client | null;
 }
 
-export default function RequestDisplay({ role, request, client }: RequestDisplayProps) {
+export default function RequestDisplay({
+  role,
+  request,
+  client,
+}: RequestDisplayProps) {
   let dashboardLink;
   switch (role) {
     case Role.Client:
@@ -26,16 +31,13 @@ export default function RequestDisplay({ role, request, client }: RequestDisplay
 
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-4 py-8">
-      <Link
-        href={dashboardLink}
-        className="w-fit text-sm hover:text-primary"
-      >
+      <Link href={dashboardLink} className="w-fit text-sm hover:text-primary">
         ← Back to dashboard
       </Link>
       <h1 className="text-2xl font-bold">{request.title}</h1>
       <Card>
         <dl className="grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-[auto_1fr]">
-          { role === Role.Developer && (
+          {role === Role.Developer && (
             <>
               <dt className="text-sm text-muted">Client</dt>
               <dd>
@@ -68,11 +70,16 @@ export default function RequestDisplay({ role, request, client }: RequestDisplay
       </section>
 
       {role === Role.Developer && request.status === WorkRequestStatus.Open && (
-        <div className="flex items-center justify-center">
-          <ProposalFormButton requestId={request.id} />
-        </div>
+        <RequestDeclineOrProposal request={request} />
       )}
 
+      {request.status === WorkRequestStatus.AwaitingApproval && (
+        <ProposalDisplay requestId={request.id} />
+      )}
+
+      {request.status === WorkRequestStatus.Declined && (
+        <DeclineDisplay requestId={request.id} />
+      )}
     </div>
   );
 }
