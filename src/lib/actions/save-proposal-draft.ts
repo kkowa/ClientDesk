@@ -4,7 +4,6 @@ import { adminDb } from "@/src/lib/firebase/admin";
 import { proposalSchema } from "@/src/lib/validation/proposal";
 import { requireDeveloperId } from "@/src/lib/access-checks/require-developer-id";
 import { ActionResult } from "@/src/types/action-result";
-import { WorkRequestStatus } from "@/src/types/work-request";
 
 export async function saveProposalDraft(
   requestId: string,
@@ -12,31 +11,32 @@ export async function saveProposalDraft(
 ): Promise<ActionResult<{ revisionId: string; unchanged: boolean }>> {
   const developerResult = await requireDeveloperId();
 
-  // Check if the developer is authorized to access this work request
-  // and extract the developer ID from the result
+  // Check if user is a developer and extract the developer ID from the result
   if (!developerResult.ok) {
     return { ok: false, error: "Access denied" };
   }
   const developerId = developerResult.data;
 
-  // Validate the proposal, verify request ownership and status, and save the revision transactionally.
+  // Validate the proposal
   try {
-    const workRequestRef = adminDb.collection("workRequests").doc(requestId);
-
     const result = proposalSchema.safeParse({
       description: formData.get("description"),
+      status: formData.get("status"),
+      revision: formData.get("revision")
     });
-
     if (!result.success) {
-      return { ok: false, error: "Proposal description is required" };
+      return { ok: false, error: result.error.issues[0].message };
     }
+    const { description, status, revision } = result.data;
 
-    const { description } = result.data;
+    const workRequestRef = adminDb.collection("workRequests").doc(requestId);
 
     const proposalRef = workRequestRef.collection("proposals").doc("current");
 
-    const revisionRef = proposalRef.collection("revisions").doc();
+    // assume creating a new doc until checking for current revision
+    let revisionRef = proposalRef.collection("revisions").doc();
 
+    // Verify request ownership and status, and save the revision transactionally.
     return await adminDb.runTransaction(async (transaction) => {
       const workRequestSnapshot = await transaction.get(workRequestRef);
       const proposalsSnapshot = await transaction.get(proposalRef);
@@ -51,11 +51,11 @@ export async function saveProposalDraft(
         return { ok: false, error: "Access denied" };
       }
 
-      if (workRequest?.status !== WorkRequestStatus.Open) {
-        return { ok: false, error: "Work request is not open" };
+      if (workRequest?.status !== status) {
+        return { ok: false, error: "Work request is wrong status" };
       }
 
-      let revisionNumber = 1;
+      const revisionNumber = revision;
       if (proposalsSnapshot.exists) {
         const proposal = proposalsSnapshot.data();
         const currentRevisionId = proposal?.currentRevisionId;
@@ -63,12 +63,13 @@ export async function saveProposalDraft(
           throw new Error("Current revision ID not found");
         }
 
-        const currentRevisionRef = proposalRef
+        // update ref if current revision exists
+        revisionRef = proposalRef
           .collection("revisions")
           .doc(currentRevisionId);
 
         const currentRevisionSnapshot =
-          await transaction.get(currentRevisionRef);
+          await transaction.get(revisionRef);
 
         if (currentRevisionSnapshot.exists) {
           const currentRevision = currentRevisionSnapshot.data();
@@ -85,27 +86,27 @@ export async function saveProposalDraft(
             };
           }
 
-          revisionNumber = (currentRevision?.revisionNumber ?? 0) + 1;
         } else {
           throw new Error("Current proposal revision not found");
         }
       }
       const now = new Date();
 
-      transaction.create(revisionRef, {
+      // create or update this revision
+      transaction.set(revisionRef, {
         revisionNumber,
         description,
         authorId: developerId,
         createdAt: now,
-      });
+        submittedAt: null,
+      }, {merge: true});
 
       const createdAt = proposalsSnapshot.exists
         ? (proposalsSnapshot.data()?.createdAt ?? now)
         : now;
 
-      const acceptedRevisionId = proposalsSnapshot.exists
-        ? (proposalsSnapshot.data()?.acceptedRevisionId ?? null)
-        : null;
+      // no accepted revision yet
+      const acceptedRevisionId = null;
 
       transaction.set(proposalRef, {
         currentRevisionId: revisionRef.id,
