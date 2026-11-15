@@ -20,7 +20,6 @@ export default async function Page({
       redirect("/auth/login");
     }
   } catch {
-    console.error("Client requests: Failed to get client ID");
     redirect("/auth/login");
   }
 
