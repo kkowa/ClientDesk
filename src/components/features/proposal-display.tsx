@@ -1,12 +1,14 @@
 import { Card } from "@/src/components/ui/card";
 import { getCurrentProposal } from "@/src/lib/actions/get-current-proposal";
+import { Role } from "@/src/types/role";
 
 interface ProposalDisplayProps {
   requestId: string;
+  role: Role;
 }
 
-export async function ProposalDisplay({ requestId }: ProposalDisplayProps) {
-  const result = await getCurrentProposal(requestId);
+export async function ProposalDisplay({ requestId, role }: ProposalDisplayProps) {
+  const result = await getCurrentProposal(requestId, role);
   if (!result.ok) {
     return null;
   }

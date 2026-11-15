@@ -74,11 +74,11 @@ export default function RequestDisplay({
       )}
 
       {request.status === WorkRequestStatus.AwaitingApproval && (
-        <ProposalDisplay requestId={request.id} />
+        <ProposalDisplay requestId={request.id} role={role} />
       )}
 
       {request.status === WorkRequestStatus.Declined && (
-        <DeclineDisplay requestId={request.id} />
+        <DeclineDisplay requestId={request.id} role={role} />
       )}
     </div>
   );

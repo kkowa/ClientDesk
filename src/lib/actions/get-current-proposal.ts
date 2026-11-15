@@ -1,9 +1,11 @@
 "use server";
 import { requireDeveloperId } from "@/src/lib/access-checks/require-developer-id";
+import { requireClientId } from "@/src/lib/access-checks/require-client-id";
 import { adminDb } from "@/src/lib/firebase/admin";
 import { ActionResult } from "@/src/types/action-result";
+import { Role } from "@/src/types/role";
 
-export async function getCurrentProposal(requestId: string): Promise<
+export async function getCurrentProposal(requestId: string, role: Role): Promise<
   ActionResult<{
     description: string;
     revisionNumber: number;
@@ -12,11 +14,19 @@ export async function getCurrentProposal(requestId: string): Promise<
   }>
 > {
   try {
-    const developerResult = await requireDeveloperId();
-    if (!developerResult.ok) {
+    let result;
+    switch (role) {
+      case Role.Developer:
+        result = await requireDeveloperId();
+        break;
+      case Role.Client:
+        result = await requireClientId();
+        break;
+    }
+    if (!result.ok) {
       return { ok: false, error: "Access denied" };
     }
-    const developerId = developerResult.data;
+    const userId = result.data;
 
     //   Verify ownership of work request
     const requestRef = adminDb.collection("workRequests").doc(requestId);
@@ -26,11 +36,22 @@ export async function getCurrentProposal(requestId: string): Promise<
     if (!requestSnap.exists) {
       return { ok: false, error: "Work request not found" };
     }
-
     const requestData = requestSnap.data();
+    if (!requestData) {
+      return { ok: false, error: "Work request not found" };
+    }
 
-    if (requestData?.developerId !== developerId) {
-      return { ok: false, error: "Access denied" };
+    switch (role) {
+      case Role.Developer:
+        if (requestData.developerId !== userId) {
+          return { ok: false, error: "Access denied" };
+        }
+        break;
+      case Role.Client:
+        if (requestData.clientId !== userId) {
+          return { ok: false, error: "Access denied" };
+        }
+        break;
     }
 
     //   Get the current proposal for the work request

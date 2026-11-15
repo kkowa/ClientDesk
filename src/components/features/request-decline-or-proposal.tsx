@@ -2,6 +2,7 @@ import { getCurrentDecline } from "@/src/lib/data/get-current-decline";
 import { getCurrentProposal } from "@/src/lib/actions/get-current-proposal";
 import { RequestDeclineOrProposalButtons } from "./request-decline-or-proposal-buttons";
 import { WorkRequest } from "@/src/types/work-request";
+import { Role } from "@/src/types/role";
 
 interface RequestDeclineOrProposalProps {
   request: WorkRequest & { id: string };
@@ -14,7 +15,7 @@ export async function RequestDeclineOrProposal({
   // get current decline reason, if exists
   let declineDescription: string = "";
   try {
-    const response = await getCurrentDecline(request.id);
+    const response = await getCurrentDecline(request.id, Role.Developer);
     if (response.ok) {
       declineDescription = response.data.description;
     } else {
@@ -28,7 +29,7 @@ export async function RequestDeclineOrProposal({
   let proposalDescription: string = "";
   let proposalRevisionNumber = 1;
   try {
-    const response = await getCurrentProposal(request.id);
+    const response = await getCurrentProposal(request.id, Role.Developer);
     if (response.ok) {
       proposalDescription = response.data.description;
       if (response.data.revisionNumber > 0) {

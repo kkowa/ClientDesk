@@ -1,14 +1,17 @@
 import { Card } from "@/src/components/ui/card";
 import { getCurrentDecline } from "@/src/lib/data/get-current-decline";
+import { Role } from "@/src/types/role";
 
 interface DeclineDisplayProps {
   requestId: string;
+  role: Role;
 }
 
 export async function DeclineDisplay({
-  requestId
+  requestId,
+  role
 }: DeclineDisplayProps) {
-  const result = await getCurrentDecline(requestId);
+  const result = await getCurrentDecline(requestId, role);
   if (!result.ok) {
     return null;
   }

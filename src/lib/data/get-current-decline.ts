@@ -2,20 +2,30 @@
 
 import { ActionResult } from "@/src/types/action-result";
 import { requireDeveloperId } from "@/src/lib/access-checks/require-developer-id";
+import { requireClientId } from "@/src/lib/access-checks/require-client-id";
 import { adminDb } from "@/src/lib/firebase/admin";
+import { Role } from "@/src/types/role";
 
-export async function getCurrentDecline(requestId: string): Promise<
+export async function getCurrentDecline(requestId: string, role: Role): Promise<
   ActionResult<{
     description: string;
     submittedAt: Date | null;
   }>
 > {
   try {
-    const result = await requireDeveloperId();
+    let result;
+    switch (role) {
+      case Role.Developer:
+        result = await requireDeveloperId();
+        break;
+      case Role.Client:
+        result = await requireClientId();
+        break;
+    }
     if (!result.ok) {
       return { ok: false, error: "Access denied" };
     }
-    const developerId = result.data;
+    const userId = result.data;
 
     // Verify ownership of work request
     const requestRef = adminDb.collection("workRequests").doc(requestId);
@@ -30,8 +40,17 @@ export async function getCurrentDecline(requestId: string): Promise<
       return { ok: false, error: "Work request not found" };
     }
 
-    if (requestData.developerId !== developerId) {
-      return { ok: false, error: "Access denied" };
+    switch (role) {
+      case Role.Developer:
+        if (requestData.developerId !== userId) {
+          return { ok: false, error: "Access denied" };
+        }
+        break;
+      case Role.Client:
+        if (requestData.clientId !== userId) {
+          return { ok: false, error: "Access denied" };
+        }
+        break;
     }
 
     // Get the current decline for the work request
