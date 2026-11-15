@@ -74,6 +74,7 @@ export async function submitDeclineOrProposal(
 
         revalidatePath(`/developer/requests/${requestId}`);
         revalidatePath(`/client/requests/${requestId}`);
+        revalidatePath("/client/dashboard");
         return { ok: true, data: "Proposal submitted" };
       });
 
@@ -99,6 +100,7 @@ export async function submitDeclineOrProposal(
 
         revalidatePath(`/developer/requests/${requestId}`);
         revalidatePath(`/client/requests/${requestId}`);
+        revalidatePath("/client/dashboard");
         return { ok: true, data: "Decline submitted" };
       });
 
