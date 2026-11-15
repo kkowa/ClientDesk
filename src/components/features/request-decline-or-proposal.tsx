@@ -1,5 +1,5 @@
 import { getCurrentDecline } from "@/src/lib/data/get-current-decline";
-import { getCurrentProposal } from "@/src/lib/actions/get-current-proposal";
+import { getCurrentProposal } from "@/src/lib/data/get-current-proposal";
 import { RequestDeclineOrProposalButtons } from "./request-decline-or-proposal-buttons";
 import { WorkRequest } from "@/src/types/work-request";
 import { Role } from "@/src/types/role";
@@ -11,7 +11,6 @@ interface RequestDeclineOrProposalProps {
 export async function RequestDeclineOrProposal({
   request,
 }: RequestDeclineOrProposalProps) {
-
   // get current decline reason, if exists
   let declineDescription: string = "";
   try {
@@ -36,7 +35,7 @@ export async function RequestDeclineOrProposal({
         proposalRevisionNumber = response.data.revisionNumber;
       }
       if (response.data.hasChangeRequests) {
-        proposalRevisionNumber += 1
+        proposalRevisionNumber += 1;
       }
     } else {
       console.error("Failed to get proposal", response.error);
