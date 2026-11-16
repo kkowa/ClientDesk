@@ -3,6 +3,10 @@ import { notFound, redirect } from "next/navigation";
 import { Card } from "@/src/components/ui/card";
 import { requireDeveloperId } from "@/src/lib/access-checks/require-developer-id";
 import { getClientForDeveloper } from "@/src/lib/data/get-client-for-developer";
+import { getClientRequestsForDeveloper as getClientRequestsForDeveloper } from "@/src/lib/data/get-client-requests-for-developer";
+import { RequestCard } from "@/src/components/features/request-card";
+import { EmptyState } from "@/src/components/ui/empty-state";
+import { ErrorMessage } from "@/src/components/ui/error-message";
 
 export default async function Page({
   params,
@@ -21,6 +25,11 @@ export default async function Page({
   if (!client) {
     notFound();
   }
+
+  const requestsResult = await getClientRequestsForDeveloper(developerResult.data, clientId);
+  const requests = requestsResult.ok
+    ? [...requestsResult.data].sort((a, b) => b.submittedAt.getTime() - a.submittedAt.getTime())
+    : [];
 
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-4 py-8">
@@ -41,6 +50,25 @@ export default async function Page({
           <dd>{client.createdAt.toLocaleDateString()}</dd>
         </dl>
       </Card>
+      <section aria-label="Requests" className="flex flex-col gap-3">
+        <h2 className="text-xl font-bold">Requests</h2>
+        {!requestsResult.ok ? (
+          <ErrorMessage message="We couldn't load this client's requests. Please refresh the page." />
+        ) : requests.length === 0 ? (
+          <EmptyState
+            title="No requests yet"
+            message="Requests from this client will appear here."
+          />
+        ) : (
+          <ul className="flex flex-col gap-3">
+            {requests.map((request) => (
+              <li key={request.id}>
+                <RequestCard request={request} />
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
     </div>
   );
 }

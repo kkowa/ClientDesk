@@ -12,20 +12,31 @@ interface WorkRequestProps {
 
 export default function WorkRequest({ onClose }: WorkRequestProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [pendingFormData, setPendingFormData] = useState<FormData | null>(null);
   const [error, setError] = useState("");
   const router = useRouter();
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    const form = e.currentTarget;
+    const formData = new FormData(form);
+
+    setPendingFormData(formData);
+    setShowConfirmation(true);
+  };
+
+  const handleConfirm = async () => {
+    if (!pendingFormData) return;
+
     setIsSubmitting(true);
     setError("");
 
-    const form = e.currentTarget;
-    const formData = new FormData(form);
     try {
-      const response = await createWorkRequest(formData);
+      const response = await createWorkRequest(pendingFormData);
       if (response.ok) {
-        form.reset();
+        setPendingFormData(null);
+        setShowConfirmation(false);
         router.refresh();
       } else {
         setError(response.error);
@@ -48,7 +59,9 @@ export default function WorkRequest({ onClose }: WorkRequestProps) {
         <div className="absolute top-3 right-3">
           <Button
             type="button"
-            onClick={() => { onClose(); }}
+            onClick={() => {
+              onClose();
+            }}
           >
             Close
           </Button>
@@ -56,12 +69,7 @@ export default function WorkRequest({ onClose }: WorkRequestProps) {
         <h1 className="text-2xl font-bold">Work Request</h1>
         <div className="flex flex-col gap-4 w-full">
           <div>
-            <TextField
-              label="Title"
-              name="title"
-              type="text"
-              required
-            />
+            <TextField label="Title" name="title" type="text" required />
           </div>
           <div>
             <TextArea
@@ -72,9 +80,25 @@ export default function WorkRequest({ onClose }: WorkRequestProps) {
             />
           </div>
         </div>
-        <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? "Submitting..." : "Submit Request"}
-        </Button>
+        {showConfirmation ? (
+          <div className="flex flex-col items-center gap-4">
+            <p>Are you sure you want to submit this work request?</p>
+            <div className="flex gap-4">
+              <Button type="button" onClick={() => setShowConfirmation(false)}>
+                Go Back
+              </Button>
+              <Button
+                type="button"
+                onClick={handleConfirm}
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? "Submitting..." : "Confirm Submission"}
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <Button type="submit">Submit Request</Button>
+        )}
       </form>
     </div>
   );
